@@ -1,5 +1,6 @@
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from .clasificacion import clasificar_reporte
+from .models import Reporte
 
 
 class PruebasClasificacion(SimpleTestCase):
@@ -45,3 +46,36 @@ class PruebasClasificacion(SimpleTestCase):
             "Existe riesgo de incendio en el sector."
         )
         self.assertEqual(resultado["prioridad"], "Media")
+
+
+class PruebasReporte(TestCase):
+
+    def test_clasificacion_al_crear(self):
+
+        reporte = Reporte.objects.create(
+            titulo="Humo en Quintero",
+            descripcion="Hay humo cerca de viviendas.",
+            sector="quintero"
+        )
+
+        self.assertEqual(reporte.prioridad, "Media")
+        self.assertEqual(reporte.puntaje, 2)
+
+    def test_clasificacion_al_editar(self):
+
+        reporte = Reporte.objects.create(
+            titulo="Basura acumulada",
+            descripcion="Hay basura acumulada.",
+            sector="ventanas"
+        )
+
+        self.assertEqual(reporte.prioridad, "Baja")
+
+        reporte.titulo = "Incendio en el sector"
+        reporte.descripcion = "Hay un incendio activo."
+        reporte.save()
+
+        reporte.refresh_from_db()
+
+        self.assertEqual(reporte.prioridad, "Alta")
+        self.assertEqual(reporte.puntaje, 5)

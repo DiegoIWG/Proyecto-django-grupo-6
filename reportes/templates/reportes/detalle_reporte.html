@@ -22,6 +22,37 @@
 
     <p>{{ reporte.descripcion|linebreaksbr }}</p>
 
+    <h3>Clasificación automática</h3>
+
+    <p>
+        <strong>Prioridad:</strong>
+        {{ reporte.prioridad }}
+    </p>
+
+    <p>
+        <strong>Puntaje:</strong>
+        {{ reporte.puntaje }}
+    </p>
+
+    <p><strong>Motivos detectados:</strong></p>
+
+    <ul>
+        {% for motivo in reporte.motivos %}
+            <li>{{ motivo }}</li>
+        {% empty %}
+            <li>No se detectaron factores específicos.</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        <small>
+            Clasificación preliminar realizada
+            automáticamente según el contenido
+            del reporte.
+        </small>
+    </p>
+
+
     <p>
         <strong>Dirección:</strong>
         {{ reporte.direccion|default:"No especificada" }}

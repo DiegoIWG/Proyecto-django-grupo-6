@@ -32,6 +32,12 @@
         </h3>
         
         <p>
+            <strong>Prioridad:</strong>
+            {{ reporte.prioridad }}
+            ({{ reporte.puntaje }} puntos)
+        </p>
+
+        <p>
             <strong>Sector:</strong>
             {{ reporte.get_sector_display }}
         </p>

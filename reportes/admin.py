@@ -5,6 +5,11 @@ from .models import Reporte
 
 @admin.register(Reporte)
 class ReporteAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'sector', 'fecha_creacion')
-    list_filter = ('sector',)
+    list_display = ('titulo', 
+                    'sector', 
+                    'prioridad',
+                    'puntaje',
+                    'fecha_creacion'
+                    )
+    list_filter = ('sector', 'prioridad')
     search_fields = ('titulo', 'descripcion')
