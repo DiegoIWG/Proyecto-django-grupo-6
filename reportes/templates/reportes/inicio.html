@@ -5,16 +5,47 @@
     <title>Tu opinión SÍ importa</title>
 </head>
 <body>
+
     <h1>Tu opinión SÍ importa</h1>
 
-    <p>Foro ciudadano de problemas ambientales.</p>
+    <p>
+        Foro ciudadano de problemas ambientales
+        de Quintero, Puchuncaví y Ventanas.
+    </p>
+
+    <hr>
 
     <h2>Reportes ambientales</h2>
 
-    <p>
-        Aquí se mostrarán los reportes publicados
-        por los habitantes de Quintero,
-        Puchuncaví y Ventanas.
-    </p>
+    {% for reporte in reportes %}
+
+        <h3>{{ reporte.titulo }}</h3>
+
+        <p>
+            <strong>Sector:</strong>
+            {{ reporte.get_sector_display }}
+        </p>
+
+        <p>{{ reporte.descripcion }}</p>
+
+        <p>
+            <strong>Dirección:</strong>
+            {{ reporte.direccion|default:"No especificada" }}
+        </p>
+
+        <p>
+            <small>
+                Publicado: {{ reporte.fecha_creacion }}
+            </small>
+        </p>
+
+        <hr>
+
+    {% empty %}
+
+        <p>Todavía no existen reportes publicados.</p>
+
+    {% endfor %}
+
 </body>
 </html>
