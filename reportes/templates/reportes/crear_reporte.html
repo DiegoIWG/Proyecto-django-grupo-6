@@ -42,6 +42,13 @@
 
         <div id="mapa"></div>
 
+        <p>
+            <small>
+                Direcciones aproximadas:
+                &copy; colaboradores de OpenStreetMap.
+            </small>
+        </p>
+
         <p id="mensaje_mapa">
             Haz clic en el mapa para marcar un punto.
         </p>
@@ -94,28 +101,57 @@
 
         let marcador = null;
 
+        const direccion = document.getElementById("id_direccion");
+        const latitudInput = document.getElementById("id_latitud");
+        const longitudInput = document.getElementById("id_longitud");
+
+        let temporizadorBusqueda = null;
+        let controladorBusqueda = null;
+
+
         // Cambiar ubicación al elegir un sector
         selector.addEventListener("change", function() {
             const ubicacion = sectores[this.value];
 
-            if (ubicacion) {
-                mapa.flyTo({
-                    center: ubicacion,
-                    zoom: 13
-                });
-
-                if (marcador) {
-                    marcador.remove();
-                    marcador = null;
-                }
-
-                mensaje.textContent =
-                    "Haz clic para marcar un punto.";
+            if (!ubicacion) {
+                return;
             }
+
+            mapa.flyTo({
+            center: ubicacion,
+            zoom: 13
+            });
+
+            clearTimeout(temporizadorBusqueda);
+
+            if (controladorBusqueda) {
+                controladorBusqueda.abort();
+            }
+
+            if (marcador) {
+                marcador.remove();
+                marcador = null;
+
+                latitudInput.value = "";
+                longitudInput.value = "";
+                direccion.value = "";
+            }
+
+            mensaje.textContent = "Selecciona un punto en el mapa.";
         });
 
         // Colocar marcador al hacer clic
         mapa.on("click", function(evento) {
+
+            // Obtener coordenadas.
+            const latitud = evento.lngLat.lat.toFixed(6);
+            const longitud = evento.lngLat.lng.toFixed(6);
+
+            // Guardar coordenadas en el formulario.
+            latitudInput.value = latitud;
+            longitudInput.value = longitud;
+
+            // Colocar el marcador.
             if (marcador) {
                 marcador.remove();
             }
@@ -124,12 +160,72 @@
                 .setLngLat(evento.lngLat)
                 .addTo(mapa);
 
-            const latitud = evento.lngLat.lat.toFixed(6);
-            const longitud = evento.lngLat.lng.toFixed(6);
+            // Cancelar búsquedas anteriores.
+            clearTimeout(temporizadorBusqueda);
 
-            mensaje.textContent =
-                "Latitud: " + latitud +
-                " | Longitud: " + longitud;
+            if (controladorBusqueda) {
+                controladorBusqueda.abort();
+            }
+
+            // Mostrar temporalmente las coordenadas.
+            const provisional =
+                "Coordenadas: " + latitud + ", " + longitud;
+
+            direccion.value = provisional;
+            mensaje.textContent = "Buscando dirección...";
+
+            // Evitar consultas por cada clic muy rápido.
+            temporizadorBusqueda = setTimeout(async function() {
+
+                controladorBusqueda = new AbortController();
+
+                const url =
+                    "https://nominatim.openstreetmap.org/reverse" +
+                    "?format=jsonv2" +
+                    "&lat=" + latitud +
+                    "&lon=" + longitud +
+                    "&zoom=18" +
+                    "&accept-language=es";
+
+                try {
+                    const respuesta = await fetch(url, {
+                        signal: controladorBusqueda.signal
+                    });
+
+                    if (!respuesta.ok) {
+                        throw new Error("Error consultando dirección");
+                    }
+
+                    const datos = await respuesta.json();
+
+                    if (datos.display_name) {
+                        // No sobrescribir si el usuario editó
+                        // manualmente la dirección.
+                        if (direccion.value === provisional) {
+                            direccion.value = datos.display_name;
+                        }
+
+                        mensaje.textContent =
+                            "Ubicación seleccionada correctamente.";
+                    } else {
+                        mensaje.textContent =
+                            "No se encontró una dirección exacta. " +
+                            "Puedes escribirla manualmente.";
+                    }
+
+                } catch (error) {
+                    if (error.name === "AbortError") {
+                        return;
+                    }
+
+                    console.error(error);
+
+                    mensaje.textContent =
+                        "No se pudo obtener la dirección. " +
+                        "Puedes escribirla manualmente.";
+                }
+
+            }, 1200);
         });
 
         // Informar errores de carga

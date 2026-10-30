@@ -58,6 +58,18 @@
         {{ reporte.direccion|default:"No especificada" }}
     </p>
 
+
+    {% if reporte.latitud != None and reporte.longitud != None %}
+
+        <p>
+            <strong>Coordenadas:</strong>
+            {{ reporte.latitud|floatformat:6 }},
+            {{ reporte.longitud|floatformat:6 }}
+        </p>
+
+    {% endif %}
+
+    
     <p>
         <strong>Publicado:</strong>
         {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}

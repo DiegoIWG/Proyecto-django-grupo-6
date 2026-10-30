@@ -13,6 +13,17 @@ class Reporte(models.Model):
     descripcion = models.TextField()
     sector = models.CharField(max_length=20, choices=SECTORES)
     direccion = models.CharField(max_length=200, blank=True)
+    
+    latitud = models.FloatField(
+        null=True,
+        blank=True
+    )
+
+    longitud = models.FloatField(
+        null=True,
+        blank=True
+    )
+
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     puntaje = models.PositiveSmallIntegerField(
