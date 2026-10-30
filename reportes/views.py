@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Reporte
 from .forms import ReporteForm
 
@@ -30,3 +30,19 @@ def crear_reporte(request):
     }
 
     return render(request, 'reportes/crear_reporte.html', contexto)
+
+
+def detalle_reporte(request, reporte_id):
+
+    reporte = get_object_or_404(Reporte, id=reporte_id)
+
+    contexto = {
+        'reporte': reporte
+    }
+
+    return render(
+        request,
+        'reportes/detalle_reporte.html',
+        contexto
+    )
+

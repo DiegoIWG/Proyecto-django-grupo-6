@@ -25,8 +25,12 @@
 
     {% for reporte in reportes %}
 
-        <h3>{{ reporte.titulo }}</h3>
-
+        <h3>
+            <a href="{% url 'detalle_reporte' reporte.id %}">
+            {{ reporte.titulo }}
+            </a>
+        </h3>
+        
         <p>
             <strong>Sector:</strong>
             {{ reporte.get_sector_display }}
