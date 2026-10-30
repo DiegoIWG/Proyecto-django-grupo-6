@@ -17,6 +17,12 @@
 
     <h2>Reportes ambientales</h2>
 
+    <a href="{% url 'crear_reporte' %}">
+    Crear nuevo reporte
+    </a>
+
+    <hr>
+
     {% for reporte in reportes %}
 
         <h3>{{ reporte.titulo }}</h3>

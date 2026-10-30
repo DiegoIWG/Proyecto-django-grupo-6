@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo reporte</title>
+</head>
+<body>
+
+    <h1>Crear reporte ambiental</h1>
+
+    <p>
+        Publica una problemática ambiental de
+        Quintero, Puchuncaví o Ventanas.
+    </p>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ formulario.as_p }}
+
+        <button type="submit">
+            Publicar reporte
+        </button>
+
+    </form>
+
+    <hr>
+
+    <a href="{% url 'inicio' %}">
+        Volver al foro
+    </a>
+
+</body>
+</html>
