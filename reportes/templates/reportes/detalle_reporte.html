@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ reporte.titulo }}</title>
+</head>
+<body>
+
+    <h1>{{ reporte.titulo }}</h1>
+
+    <hr>
+
+    <p>
+        <strong>Sector:</strong>
+        {{ reporte.get_sector_display }}
+    </p>
+
+    <p>
+        <strong>Descripción:</strong>
+    </p>
+
+    <p>{{ reporte.descripcion|linebreaksbr }}</p>
+
+    <p>
+        <strong>Dirección:</strong>
+        {{ reporte.direccion|default:"No especificada" }}
+    </p>
+
+    <p>
+        <strong>Publicado:</strong>
+        {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}
+    </p>
+
+    <hr>
+
+    <a href="{% url 'inicio' %}">
+        Volver al foro
+    </a>
+
+</body>
+</html>
