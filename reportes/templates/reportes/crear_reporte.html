@@ -3,26 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <title>Nuevo reporte</title>
+
+    <!-- Biblioteca del mapa -->
+    <link
+        href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        #mapa {
+            width: 100%;
+            height: 400px;
+            border: 1px solid gray;
+        }
+    </style>
 </head>
+
 <body>
 
     <h1>Crear reporte ambiental</h1>
 
     <p>
-        Publica una problemática ambiental de
+        Publica un problema ambiental de
         Quintero, Puchuncaví o Ventanas.
     </p>
 
     <form method="POST">
-
         {% csrf_token %}
 
         {{ formulario.as_p }}
 
+        <h3>Ubicación del problema</h3>
+
+        <p>
+            Selecciona un sector en el formulario
+            y luego marca el lugar en el mapa.
+        </p>
+
+        <div id="mapa"></div>
+
+        <p id="mensaje_mapa">
+            Haz clic en el mapa para marcar un punto.
+        </p>
+
+        <p>
+            <small>
+                Por ahora el punto es una prueba visual.
+                Aún no se guardará con el reporte.
+            </small>
+        </p>
+
         <button type="submit">
             Publicar reporte
         </button>
-
     </form>
 
     <hr>
@@ -30,6 +63,82 @@
     <a href="{% url 'inicio' %}">
         Volver al foro
     </a>
+
+    <script type="module">
+        import * as maplibregl from
+            'https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs';
+
+        // Coordenadas: [longitud, latitud]
+        const sectores = {
+            quintero: [-71.53228, -32.78766],
+            puchuncavi: [-71.42416, -32.73111],
+            ventanas: [-71.48835, -32.74177]
+        };
+
+        const selector = document.getElementById("id_sector");
+        const mensaje = document.getElementById("mensaje_mapa");
+
+        const sectorInicial = selector.value || "quintero";
+
+        // Crear mapa
+        const mapa = new maplibregl.Map({
+            container: "mapa",
+            style: "https://tiles.openfreemap.org/styles/liberty",
+            center: sectores[sectorInicial],
+            zoom: 13
+        });
+
+        mapa.addControl(
+            new maplibregl.NavigationControl()
+        );
+
+        let marcador = null;
+
+        // Cambiar ubicación al elegir un sector
+        selector.addEventListener("change", function() {
+            const ubicacion = sectores[this.value];
+
+            if (ubicacion) {
+                mapa.flyTo({
+                    center: ubicacion,
+                    zoom: 13
+                });
+
+                if (marcador) {
+                    marcador.remove();
+                    marcador = null;
+                }
+
+                mensaje.textContent =
+                    "Haz clic para marcar un punto.";
+            }
+        });
+
+        // Colocar marcador al hacer clic
+        mapa.on("click", function(evento) {
+            if (marcador) {
+                marcador.remove();
+            }
+
+            marcador = new maplibregl.Marker()
+                .setLngLat(evento.lngLat)
+                .addTo(mapa);
+
+            const latitud = evento.lngLat.lat.toFixed(6);
+            const longitud = evento.lngLat.lng.toFixed(6);
+
+            mensaje.textContent =
+                "Latitud: " + latitud +
+                " | Longitud: " + longitud;
+        });
+
+        // Informar errores de carga
+        mapa.on("error", function(evento) {
+            console.error("Error del mapa:", evento.error);
+            mensaje.textContent =
+                "Hubo un problema cargando el mapa.";
+        });
+    </script>
 
 </body>
 </html>
