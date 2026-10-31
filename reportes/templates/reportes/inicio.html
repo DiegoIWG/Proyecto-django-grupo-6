@@ -16,6 +16,46 @@
     <hr>
 
     <h2>Reportes ambientales</h2>
+    
+    <h3>Filtrar publicaciones</h3>
+
+    <form method="GET">
+
+        <label for="sector">Sector:</label>
+
+        <select name="sector" id="sector">
+            <option value="">Todos</option>
+
+            {% for valor, nombre in sectores %}
+                <option value="{{ valor }}"
+                    {% if sector_actual == valor %}selected{% endif %}>
+                    {{ nombre }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="prioridad">Prioridad:</label>
+
+        <select name="prioridad" id="prioridad">
+            <option value="">Todas</option>
+
+            {% for opcion in prioridades %}
+                <option value="{{ opcion }}"
+                    {% if prioridad_actual == opcion %}selected{% endif %}>
+                    {{ opcion }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Filtrar</button>
+
+        <a href="{% url 'inicio' %}">
+            Limpiar filtros
+        </a>
+
+    </form>
+
+    <hr>
 
     <a href="{% url 'crear_reporte' %}">
     Crear nuevo reporte
