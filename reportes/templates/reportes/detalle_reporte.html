@@ -4,6 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ reporte.titulo }}</title>
+    
+    {% if coordenadas %}
+    <link
+        href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css"
+        rel="stylesheet"
+    >
+    {% endif %}
 </head>
 <body>
 
@@ -81,5 +88,63 @@
         Volver al foro
     </a>
 
+
+<hr>
+
+<h2>Ubicación del problema</h2>
+
+        {% if coordenadas %}
+
+            <div id="mapa_reporte"
+                style="width: 100%; height: 350px; border: 1px solid gray;">
+            </div>
+
+            {{ coordenadas|json_script:"ubicacion-reporte" }}
+
+            <script type="module">
+                import * as maplibregl from
+                    'https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs';
+
+                const coordenadas = JSON.parse(
+                    document.getElementById(
+                        "ubicacion-reporte"
+                    ).textContent
+                );
+
+                const mapa = new maplibregl.Map({
+                    container: "mapa_reporte",
+                    style: "https://tiles.openfreemap.org/styles/liberty",
+                    center: [
+                        coordenadas.lng,
+                        coordenadas.lat
+                    ],
+                    zoom: 15
+                });
+
+                mapa.addControl(
+                    new maplibregl.NavigationControl()
+                );
+
+                new maplibregl.Marker()
+                    .setLngLat([
+                        coordenadas.lng,
+                        coordenadas.lat
+                    ])
+                    .addTo(mapa);
+
+            </script>
+
+            <p>
+                <small>
+                    Ubicación indicada por el usuario.
+                    No verificada oficialmente.
+                </small>
+            </p>
+
+        {% else %}
+
+            <p>Este reporte no tiene una ubicación en el mapa.</p>
+
+        {% endif %}
 </body>
 </html>

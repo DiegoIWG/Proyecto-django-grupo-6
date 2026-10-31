@@ -4,13 +4,46 @@ from .forms import ReporteForm
 
 
 def inicio(request):
-    reportes = Reporte.objects.all().order_by('-fecha_creacion')
+    reportes = Reporte.objects.all()
+
+    # Obtener filtros seleccionados.
+    sector = request.GET.get('sector', '')
+    prioridad = request.GET.get('prioridad', '')
+
+    # Comprobar sectores validos.
+    sectores_validos = [
+        codigo for codigo, nombre in Reporte.SECTORES
+    ]
+
+    if sector in sectores_validos:
+        reportes = reportes.filter(sector=sector)
+    else:
+        sector = ''
+
+    # Comprobar prioridades validas.
+    prioridades = ['Alta', 'Media', 'Baja']
+
+    if prioridad in prioridades:
+        reportes = reportes.filter(prioridad=prioridad)
+    else:
+        prioridad = ''
+
+    # Ordenar por fecha.
+    reportes = reportes.order_by('-fecha_creacion')
 
     contexto = {
-        'reportes': reportes
+        'reportes': reportes,
+        'sectores': Reporte.SECTORES,
+        'prioridades': prioridades,
+        'sector_actual': sector,
+        'prioridad_actual': prioridad
     }
 
-    return render(request, 'reportes/inicio.html', contexto)
+    return render(
+        request,
+        'reportes/inicio.html',
+        contexto
+    )
 
 
 def crear_reporte(request):
@@ -34,10 +67,22 @@ def crear_reporte(request):
 
 def detalle_reporte(request, reporte_id):
 
-    reporte = get_object_or_404(Reporte, id=reporte_id)
+    reporte = get_object_or_404(
+        Reporte,
+        id=reporte_id
+    )
+
+    coordenadas = None
+
+    if reporte.latitud is not None and reporte.longitud is not None:
+        coordenadas = {
+            'lat': reporte.latitud,
+            'lng': reporte.longitud
+        }
 
     contexto = {
-        'reporte': reporte
+        'reporte': reporte,
+        'coordenadas': coordenadas
     }
 
     return render(
@@ -45,4 +90,3 @@ def detalle_reporte(request, reporte_id):
         'reportes/detalle_reporte.html',
         contexto
     )
-
