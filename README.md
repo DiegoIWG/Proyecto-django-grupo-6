@@ -1,4 +1,3 @@
-
 # Tu opinión SÍ importa
 
 Proyecto de aplicación web desarrollado con Django y con ayuda de la IA
