@@ -1,8 +1,14 @@
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, Client
 from .clasificacion import clasificar_reporte
-from .models import Reporte
+from .models import Reporte, Apoyo
 from .clasificacion import clasificar_reporte
 from django.urls import reverse
+from django.conf import settings
+
+
+
+
+
 
 class PruebasClasificacion(SimpleTestCase):
 
@@ -177,3 +183,90 @@ class PruebasForo(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 404)
+
+
+class PruebasApoyos(TestCase):
+
+    def setUp(self):
+        self.reporte = Reporte.objects.create(
+            titulo="Humo en Quintero",
+            descripcion="Hay humo todos los dias.",
+            sector="quintero"
+        )
+
+        self.url = reverse(
+            'apoyar_reporte',
+            args=[self.reporte.id]
+        )
+
+    def test_agregar_y_quitar_apoyo(self):
+        self.client.post(self.url)
+
+        self.assertEqual(
+            Apoyo.objects.count(), 1
+        )
+
+        self.assertIn(
+            settings.SESSION_COOKIE_NAME,
+            self.client.cookies
+        )
+
+        self.client.post(self.url)
+
+        self.assertEqual(
+            Apoyo.objects.count(), 0
+        )
+
+    def test_dos_navegadores(self):
+        otro_navegador = Client()
+
+        self.client.post(self.url)
+        otro_navegador.post(self.url)
+
+        self.assertEqual(
+            Apoyo.objects.count(), 2
+        )
+
+    def test_no_permite_get(self):
+        respuesta = self.client.get(self.url)
+
+        self.assertEqual(
+            respuesta.status_code, 405
+        )
+
+        self.assertEqual(
+            Apoyo.objects.count(), 0
+        )
+
+    def test_prioridad_no_cambia(self):
+        prioridad_original = self.reporte.prioridad
+        puntaje_original = self.reporte.puntaje
+
+        self.client.post(self.url)
+
+        self.reporte.refresh_from_db()
+
+        self.assertEqual(
+            self.reporte.prioridad,
+            prioridad_original
+        )
+
+        self.assertEqual(
+            self.reporte.puntaje,
+            puntaje_original
+        )
+
+    def test_contador_en_foro(self):
+        self.client.post(self.url)
+
+        respuesta = self.client.get(
+            reverse('inicio')
+        )
+
+        reporte = respuesta.context['reportes'].get(
+            id=self.reporte.id
+        )
+
+        self.assertEqual(
+            reporte.total_apoyos, 1
+        )

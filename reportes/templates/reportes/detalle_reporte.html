@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -83,6 +82,40 @@
     </p>
 
     <hr>
+
+    
+    <hr>
+
+    <h3>Apoyos ciudadanos</h3>
+
+    <p>
+        Este reporte tiene
+        {{ reporte.apoyos.count }} apoyo(s).
+    </p>
+
+    <form method="POST"
+        action="{% url 'apoyar_reporte' reporte.id %}">
+
+        {% csrf_token %}
+
+        <button type="submit">
+            {% if apoyado %}
+                Quitar mi apoyo
+            {% else %}
+                Apoyar este reporte
+            {% endif %}
+        </button>
+
+    </form>
+
+    <p>
+        <small>
+            Los apoyos muestran el interés de la
+            comunidad, pero no modifican la
+            clasificación de gravedad.
+        </small>
+    </p>
+
 
     <a href="{% url 'inicio' %}">
         Volver al foro

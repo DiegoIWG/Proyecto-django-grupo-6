@@ -11,4 +11,10 @@ urlpatterns = [
         views.detalle_reporte,
         name='detalle_reporte'
     ),
+    
+path(
+    'reporte/<int:reporte_id>/apoyar/',
+    views.apoyar_reporte,
+    name='apoyar_reporte'
+),
 ]

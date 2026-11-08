@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Reporte
+from .models import Reporte, Apoyo
 from .forms import ReporteForm
+from django.views.decorators.http import require_POST
+from django.db.models import Count
 
 
 def inicio(request):
@@ -28,8 +30,10 @@ def inicio(request):
     else:
         prioridad = ''
 
-    # Ordenar por fecha.
-    reportes = reportes.order_by('-fecha_creacion')
+    # Ordenar por fecha y contar apoyos de cada reporte.
+    reportes = reportes.annotate(
+        total_apoyos=Count('apoyos')
+    ).order_by('-fecha_creacion')
 
     contexto = {
         'reportes': reportes,
@@ -80,13 +84,50 @@ def detalle_reporte(request, reporte_id):
             'lng': reporte.longitud
         }
 
+    sesion = request.session.session_key
+
+    if sesion:
+        apoyado = Apoyo.objects.filter(
+            reporte=reporte,
+            sesion=sesion
+        ).exists()
+    else:
+        apoyado = False
+
     contexto = {
         'reporte': reporte,
-        'coordenadas': coordenadas
+        'coordenadas': coordenadas,
+        'apoyado': apoyado
     }
 
     return render(
         request,
         'reportes/detalle_reporte.html',
         contexto
+    )
+
+
+@require_POST
+def apoyar_reporte(request, reporte_id):
+
+    reporte = get_object_or_404(
+        Reporte,
+        id=reporte_id
+    )
+
+    if not request.session.session_key:
+        request.session.create()
+        request.session.modified = True
+
+    apoyo, creado = Apoyo.objects.get_or_create(
+        reporte=reporte,
+        sesion=request.session.session_key
+    )
+
+    if not creado:
+        apoyo.delete()
+
+    return redirect(
+        'detalle_reporte',
+        reporte_id=reporte.id
     )
