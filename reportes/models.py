@@ -59,3 +59,24 @@ class Reporte(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+class Apoyo(models.Model):
+
+    reporte = models.ForeignKey(
+        Reporte,
+        on_delete=models.CASCADE,
+        related_name='apoyos'
+    )
+
+    sesion = models.CharField(max_length=40)
+
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['reporte', 'sesion'],
+                name='apoyo_unico_por_sesion'
+            )
+        ]
