@@ -117,6 +117,7 @@ def apoyar_reporte(request, reporte_id):
 
     if not request.session.session_key:
         request.session.create()
+        request.session.modified = True
 
     apoyo, creado = Apoyo.objects.get_or_create(
         reporte=reporte,
