@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Tu opinión SÍ importa</title>
+
+    <p>
+        <a href="{% url 'historial' %}">
+            Ver historial de reportes antiguos
+        </a>
+    </p>
 </head>
 <body>
 
@@ -45,6 +51,24 @@
                     {{ opcion }}
                 </option>
             {% endfor %}
+        </select>
+        
+        <label for="orden">
+            Ordenar reportes:
+        </label>
+
+        <select name="orden" id="orden">
+
+            <option value="recientes"
+                {% if orden == 'recientes' %}selected{% endif %}>
+                Más recientes
+            </option>
+
+            <option value="apoyados"
+                {% if orden == 'apoyados' %}selected{% endif %}>
+                Más apoyados
+            </option>
+
         </select>
 
         <button type="submit">Filtrar</button>
@@ -96,7 +120,7 @@
         </p>
 
         <p>
-            <strong>Apoyos:</strong>
+            <strong>Apoyos del período actual:</strong>
             {{ reporte.total_apoyos }}
         </p>
 

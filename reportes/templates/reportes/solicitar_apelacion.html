@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitar reactivación</title>
+</head>
+<body>
+
+    <h1>Solicitar reactivación</h1>
+
+    <h2>{{ reporte.titulo }}</h2>
+
+    <p>
+        Este reporte cumplió sus 21 días de
+        publicación.
+    </p>
+
+    {% if pendiente %}
+
+        <p>
+            Ya existe una apelación pendiente
+            de revisión para este reporte.
+        </p>
+
+    {% else %}
+
+        <p>
+            Si el problema ambiental continúa,
+            explica por qué debería volver
+            a aparecer en el foro.
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {{ formulario.non_field_errors }}
+
+            <p>
+                {{ formulario.motivo.label_tag }}
+            </p>
+
+            <p>
+                {{ formulario.motivo }}
+            </p>
+
+            {{ formulario.motivo.errors }}
+
+            <button type="submit">
+                Enviar apelación
+            </button>
+        </form>
+
+        <p>
+            La solicitud será revisada antes
+            de reactivar el reporte.
+        </p>
+
+    {% endif %}
+
+    <hr>
+
+    <a href="{% url 'detalle_reporte' reporte.id %}">
+        Volver al reporte
+    </a>
+
+</body>
+</html>

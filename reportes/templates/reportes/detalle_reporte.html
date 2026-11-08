@@ -86,28 +86,161 @@
     
     <hr>
 
+    <h3>Estado de la última apelación</h3>
+
+    {% if ultima_apelacion %}
+
+        <p>
+            <strong>Fecha de solicitud:</strong>
+            {{ ultima_apelacion.fecha_solicitud|date:"d/m/Y H:i" }}
+        </p>
+
+        {% if ultima_apelacion.estado == 'pendiente' %}
+
+            <p>
+                <strong>Pendiente de revisión</strong>
+            </p>
+
+            <p>
+                La solicitud está esperando
+                una decisión del administrador.
+            </p>
+
+        {% elif ultima_apelacion.estado == 'aprobada' %}
+
+            <p>
+                <strong>Apelación aprobada</strong>
+            </p>
+
+            <p>
+                El reporte fue reactivado
+                por un nuevo período de 21 días.
+            </p>
+
+        {% elif ultima_apelacion.estado == 'rechazada' %}
+
+            <p>
+                <strong>Apelación rechazada</strong>
+            </p>
+
+            <p>
+                La solicitud no fue aprobada.
+                El reporte permanece sujeto
+                a las reglas de vigencia.
+            </p>
+
+        {% endif %}
+
+        {% if ultima_apelacion.fecha_revision %}
+
+            <p>
+                <strong>Fecha de revisión:</strong>
+                {{ ultima_apelacion.fecha_revision|date:"d/m/Y H:i" }}
+            </p>
+
+        {% endif %}
+
+    {% else %}
+
+        <p>
+            Este reporte todavía no tiene
+            solicitudes de reactivación.
+        </p>
+
+    {% endif %}
+    
+    {% if ultima_apelacion.estado != 'pendiente' and ultima_apelacion.respuesta_revision %}
+
+        <h4>Respuesta del administrador</h4>
+
+        <p>
+            {{ ultima_apelacion.respuesta_revision }}
+        </p>
+
+    {% endif %}
+
+    <hr>
+
     <h3>Apoyos ciudadanos</h3>
 
     <p>
-        Este reporte tiene
-        {{ reporte.apoyos.count }} apoyo(s).
+        <strong>Período actual:</strong>
+        {{ apoyos_actuales }} apoyo(s)
     </p>
 
-    <form method="POST"
-        action="{% url 'apoyar_reporte' reporte.id %}">
+    <p>
+        <strong>Períodos anteriores:</strong>
+        {{ apoyos_anteriores }} apoyo(s)
+    </p>
 
-        {% csrf_token %}
+    <p>
+        <strong>Total acumulado:</strong>
+        {{ apoyos_totales }} apoyo(s)
+    </p>
 
-        <button type="submit">
-            {% if apoyado %}
-                Quitar mi apoyo
-            {% else %}
-                Apoyar este reporte
-            {% endif %}
-        </button>
+    <p>
+        <small>
+            Período número {{ reporte.numero_periodo }}
+        </small>
+    </p>
 
-    </form>
 
+    {% if archivado %}
+
+        <p>
+            <strong>Estado: Archivado</strong>
+        </p>
+
+        <p>
+            Este reporte cumplió sus 21 días de
+            publicación y ya no recibe apoyos.
+            Su información sigue disponible
+            como antecedente histórico.
+        </p>
+
+        <a href="{% url 'historial' %}">
+            Volver al historial
+        </a>
+        
+
+        {% if apelacion_pendiente %}
+
+            <p>
+                Ya existe una solicitud de reactivación
+                pendiente de revisión.
+            </p>
+
+        {% else %}
+
+            <p>
+                ¿El problema ambiental continúa?
+            </p>
+
+            <a href="{% url 'solicitar_apelacion' reporte.id %}">
+                Solicitar reactivación
+            </a>
+
+        {% endif %}
+
+    {% else %}
+
+        <form method="POST"
+            action="{% url 'apoyar_reporte' reporte.id %}">
+
+            {% csrf_token %}
+
+            <button type="submit">
+                {% if apoyado %}
+                    Quitar mi apoyo
+                {% else %}
+                    Apoyar este reporte
+                {% endif %}
+            </button>
+
+        </form>
+
+    {% endif %}
+    
     <p>
         <small>
             Los apoyos muestran el interés de la

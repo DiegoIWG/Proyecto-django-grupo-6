@@ -12,9 +12,21 @@ urlpatterns = [
         name='detalle_reporte'
     ),
     
-path(
-    'reporte/<int:reporte_id>/apoyar/',
-    views.apoyar_reporte,
-    name='apoyar_reporte'
-),
+    path(
+        'reporte/<int:reporte_id>/apoyar/',
+        views.apoyar_reporte,
+        name='apoyar_reporte'
+    ),
+
+    path(
+        'historial/',
+        views.historial,
+        name='historial'
+    ),
+    
+    path(
+        'reporte/<int:reporte_id>/apelacion/',
+        views.solicitar_apelacion,
+        name='solicitar_apelacion'
+    ),
 ]

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Reporte
+from .models import Reporte, Apelacion
 
 class ReporteForm(forms.ModelForm):
 
@@ -48,3 +48,35 @@ class ReporteForm(forms.ModelForm):
                 )
 
         return datos
+
+
+class ApelacionForm(forms.ModelForm):
+
+    class Meta:
+        model = Apelacion
+        fields = ['motivo']
+
+        widgets = {
+            'motivo': forms.Textarea(attrs={
+                'rows': 5,
+                'placeholder': (
+                    'Explica por qué el problema '
+                    'ambiental todavía continúa.'
+                )
+            })
+        }
+
+        labels = {
+            'motivo': 'Motivo de la apelación'
+        }
+
+    def clean_motivo(self):
+        motivo = self.cleaned_data['motivo'].strip()
+
+        if len(motivo) < 20:
+            raise forms.ValidationError(
+                'Explica el problema con al menos '
+                '20 caracteres.'
+            )
+
+        return motivo
