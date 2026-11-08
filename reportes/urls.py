@@ -23,4 +23,10 @@ urlpatterns = [
         views.historial,
         name='historial'
     ),
+    
+    path(
+        'reporte/<int:reporte_id>/apelacion/',
+        views.solicitar_apelacion,
+        name='solicitar_apelacion'
+    ),
 ]

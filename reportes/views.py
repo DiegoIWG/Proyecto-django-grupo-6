@@ -1,14 +1,26 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.http import require_POST
-from django.db.models import Count
+from django.views.decorators.http import require_POST, require_http_methods
+from django.db.models import Count, F, Q
 from django.http import HttpResponseForbidden
-from .models import Reporte, Apoyo
-from .forms import ReporteForm
+from django.db.models.functions import Coalesce
+from django.db import IntegrityError, transaction
+from .models import Reporte, Apoyo, Apelacion
+from .forms import ReporteForm, ApelacionForm
 from .vigencia import fecha_limite
 
 def inicio(request):
-    reportes = Reporte.objects.filter(
-        fecha_creacion__gt=fecha_limite()
+    orden = request.GET.get('orden', 'recientes')
+
+    if orden not in ('recientes', 'apoyados'):
+        orden = 'recientes'
+    
+    reportes = Reporte.objects.annotate(
+        fecha_inicio_vigencia=Coalesce(
+            'fecha_reactivacion',
+            'fecha_creacion'
+        )
+    ).filter(
+        fecha_inicio_vigencia__gt=fecha_limite()
     )
 
     # Obtener filtros seleccionados.
@@ -33,17 +45,35 @@ def inicio(request):
     else:
         prioridad = ''
 
-    # Ordenar por fecha y contar apoyos de cada reporte.
+    # Ordenar por fecha o por votos (dentro del periodo actual) y contar apoyos de cada reporte.
     reportes = reportes.annotate(
-        total_apoyos=Count('apoyos')
-    ).order_by('-fecha_creacion')
+        total_apoyos=Count(
+            'apoyos',
+            filter=Q(
+                apoyos__periodo=F('numero_periodo')
+            )
+        )
+    )
+
+    if orden == 'apoyados':
+        reportes = reportes.order_by(
+            '-total_apoyos',
+            '-fecha_inicio_vigencia',
+            '-id'
+        )
+    else:
+        reportes = reportes.order_by(
+            '-fecha_inicio_vigencia',
+            '-id'
+        )
 
     contexto = {
         'reportes': reportes,
         'sectores': Reporte.SECTORES,
         'prioridades': prioridades,
         'sector_actual': sector,
-        'prioridad_actual': prioridad
+        'prioridad_actual': prioridad,
+        'orden': orden
     }
 
     return render(
@@ -73,7 +103,6 @@ def crear_reporte(request):
 
 
 def detalle_reporte(request, reporte_id):
-
     reporte = get_object_or_404(
         Reporte,
         id=reporte_id
@@ -92,7 +121,8 @@ def detalle_reporte(request, reporte_id):
     if sesion:
         apoyado = Apoyo.objects.filter(
             reporte=reporte,
-            sesion=sesion
+            sesion=sesion,
+            periodo=reporte.numero_periodo
         ).exists()
     else:
         apoyado = False
@@ -103,8 +133,34 @@ def detalle_reporte(request, reporte_id):
         'apoyado': apoyado
     }
 
-    contexto['archivado'] = (
-        reporte.fecha_creacion <= fecha_limite()
+    contexto['archivado'] = reporte.esta_archivado
+
+    contexto['apelacion_pendiente'] = (
+        reporte.apelaciones.filter(
+            estado='pendiente'
+        ).exists()
+    )
+
+    contexto['ultima_apelacion'] = (
+        reporte.apelaciones
+        .order_by('-fecha_solicitud', '-id')
+        .first()
+        )
+
+    contexto['apoyos_actuales'] = (
+        reporte.apoyos.filter(
+            periodo=reporte.numero_periodo
+        ).count()
+    )   
+
+    contexto['apoyos_anteriores'] = (
+        reporte.apoyos.exclude(
+            periodo=reporte.numero_periodo
+        ).count()
+    )
+
+    contexto['apoyos_totales'] = (
+        reporte.apoyos.count()
     )
 
     return render(
@@ -116,13 +172,12 @@ def detalle_reporte(request, reporte_id):
 
 @require_POST
 def apoyar_reporte(request, reporte_id):
-
     reporte = get_object_or_404(
         Reporte,
         id=reporte_id
     )
     
-    if reporte.fecha_creacion <= fecha_limite():
+    if reporte.esta_archivado:
         return HttpResponseForbidden(
             "Este reporte está archivado y "
             "ya no puede recibir apoyos."
@@ -134,7 +189,8 @@ def apoyar_reporte(request, reporte_id):
 
     apoyo, creado = Apoyo.objects.get_or_create(
         reporte=reporte,
-        sesion=request.session.session_key
+        sesion=request.session.session_key,
+        periodo=reporte.numero_periodo
     )
 
     if not creado:
@@ -147,9 +203,13 @@ def apoyar_reporte(request, reporte_id):
 
 
 def historial(request):
-
-    reportes = Reporte.objects.filter(
-        fecha_creacion__lte=fecha_limite()
+    reportes = Reporte.objects.annotate(
+        fecha_inicio_vigencia=Coalesce(
+            'fecha_reactivacion',
+            'fecha_creacion'
+        )
+    ).filter(
+        fecha_inicio_vigencia__lte=fecha_limite()
     ).order_by('-fecha_creacion')
 
     contexto = {
@@ -160,4 +220,71 @@ def historial(request):
         request,
         'reportes/historial.html',
         contexto
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def solicitar_apelacion(request, reporte_id):
+
+    reporte = get_object_or_404(
+        Reporte,
+        id=reporte_id
+    )
+
+    if not reporte.esta_archivado:
+        return redirect(
+            'detalle_reporte',
+            reporte_id=reporte.id
+        )
+
+    pendiente = Apelacion.objects.filter(
+        reporte=reporte,
+        estado='pendiente'
+    ).exists()
+
+    if pendiente:
+        return render(
+            request,
+            'reportes/solicitar_apelacion.html',
+            {
+                'reporte': reporte,
+                'pendiente': True
+            }
+        )
+
+    formulario = ApelacionForm(
+        request.POST if request.method == 'POST' else None
+    )
+
+    if request.method == 'POST' and formulario.is_valid():
+
+        apelacion = formulario.save(commit=False)
+        apelacion.reporte = reporte
+
+        try:
+            with transaction.atomic():
+                apelacion.save()
+        except IntegrityError:
+            return render(
+                request,
+                'reportes/solicitar_apelacion.html',
+                {
+                    'reporte': reporte,
+                    'pendiente': True
+                }
+            )
+
+        return redirect(
+            'detalle_reporte',
+            reporte_id=reporte.id
+        )
+
+    return render(
+        request,
+        'reportes/solicitar_apelacion.html',
+        {
+            'reporte': reporte,
+            'formulario': formulario,
+            'pendiente': False
+        }
     )
