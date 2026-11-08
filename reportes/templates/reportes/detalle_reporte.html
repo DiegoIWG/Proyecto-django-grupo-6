@@ -93,21 +93,43 @@
         {{ reporte.apoyos.count }} apoyo(s).
     </p>
 
-    <form method="POST"
-        action="{% url 'apoyar_reporte' reporte.id %}">
 
-        {% csrf_token %}
+    {% if archivado %}
 
-        <button type="submit">
-            {% if apoyado %}
-                Quitar mi apoyo
-            {% else %}
-                Apoyar este reporte
-            {% endif %}
-        </button>
+        <p>
+            <strong>Estado: Archivado</strong>
+        </p>
 
-    </form>
+        <p>
+            Este reporte cumplió sus 21 días de
+            publicación y ya no recibe apoyos.
+            Su información sigue disponible
+            como antecedente histórico.
+        </p>
 
+        <a href="{% url 'historial' %}">
+            Volver al historial
+        </a>
+
+    {% else %}
+
+        <form method="POST"
+            action="{% url 'apoyar_reporte' reporte.id %}">
+
+            {% csrf_token %}
+
+            <button type="submit">
+                {% if apoyado %}
+                    Quitar mi apoyo
+                {% else %}
+                    Apoyar este reporte
+                {% endif %}
+            </button>
+
+        </form>
+
+    {% endif %}
+    
     <p>
         <small>
             Los apoyos muestran el interés de la

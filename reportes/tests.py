@@ -1,13 +1,11 @@
 from django.test import SimpleTestCase, TestCase, Client
+from django.urls import reverse
+from django.conf import settings
+from django.utils import timezone
 from .clasificacion import clasificar_reporte
 from .models import Reporte, Apoyo
 from .clasificacion import clasificar_reporte
-from django.urls import reverse
-from django.conf import settings
-
-
-
-
+from datetime import timedelta
 
 
 class PruebasClasificacion(SimpleTestCase):
@@ -270,3 +268,82 @@ class PruebasApoyos(TestCase):
         self.assertEqual(
             reporte.total_apoyos, 1
         )
+
+
+class PruebasArchivado(TestCase):
+
+    def setUp(self):
+        self.activo = Reporte.objects.create(
+            titulo="Reporte reciente",
+            descripcion="Hay humo en el sector.",
+            sector="quintero"
+        )
+
+        self.antiguo = Reporte.objects.create(
+            titulo="Reporte antiguo",
+            descripcion="Hay humo en el sector.",
+            sector="quintero"
+        )
+
+        Reporte.objects.filter(
+            pk=self.antiguo.pk
+        ).update(
+            fecha_creacion=timezone.now()
+            - timedelta(days=22)
+        )
+
+    def test_solo_activos_en_foro(self):
+        respuesta = self.client.get(
+            reverse('inicio')
+        )
+
+        reportes = respuesta.context['reportes']
+
+        self.assertIn(self.activo, reportes)
+        self.assertNotIn(self.antiguo, reportes)
+
+    def test_antiguos_en_historial(self):
+        respuesta = self.client.get(
+            reverse('historial')
+        )
+
+        reportes = respuesta.context['reportes']
+
+        self.assertIn(self.antiguo, reportes)
+        self.assertNotIn(self.activo, reportes)
+
+    def test_detalle_archivado(self):
+        respuesta = self.client.get(
+            reverse(
+                'detalle_reporte',
+                args=[self.antiguo.id]
+            )
+        )
+
+        self.assertEqual(
+            respuesta.status_code, 200
+        )
+
+        self.assertTrue(
+            respuesta.context['archivado']
+        )
+
+    def test_archivado_no_recibe_apoyos(self):
+        respuesta = self.client.post(
+            reverse(
+                'apoyar_reporte',
+                args=[self.antiguo.id]
+            )
+        )
+
+        self.assertEqual(
+            respuesta.status_code, 403
+        )
+
+        self.assertEqual(
+            Apoyo.objects.filter(
+                reporte=self.antiguo
+            ).count(),
+            0
+        )
+    

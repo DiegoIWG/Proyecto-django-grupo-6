@@ -1,12 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Reporte, Apoyo
-from .forms import ReporteForm
 from django.views.decorators.http import require_POST
 from django.db.models import Count
-
+from django.http import HttpResponseForbidden
+from .models import Reporte, Apoyo
+from .forms import ReporteForm
+from .vigencia import fecha_limite
 
 def inicio(request):
-    reportes = Reporte.objects.all()
+    reportes = Reporte.objects.filter(
+        fecha_creacion__gt=fecha_limite()
+    )
 
     # Obtener filtros seleccionados.
     sector = request.GET.get('sector', '')
@@ -100,6 +103,10 @@ def detalle_reporte(request, reporte_id):
         'apoyado': apoyado
     }
 
+    contexto['archivado'] = (
+        reporte.fecha_creacion <= fecha_limite()
+    )
+
     return render(
         request,
         'reportes/detalle_reporte.html',
@@ -114,6 +121,12 @@ def apoyar_reporte(request, reporte_id):
         Reporte,
         id=reporte_id
     )
+    
+    if reporte.fecha_creacion <= fecha_limite():
+        return HttpResponseForbidden(
+            "Este reporte está archivado y "
+            "ya no puede recibir apoyos."
+        )
 
     if not request.session.session_key:
         request.session.create()
@@ -130,4 +143,21 @@ def apoyar_reporte(request, reporte_id):
     return redirect(
         'detalle_reporte',
         reporte_id=reporte.id
+    )
+
+
+def historial(request):
+
+    reportes = Reporte.objects.filter(
+        fecha_creacion__lte=fecha_limite()
+    ).order_by('-fecha_creacion')
+
+    contexto = {
+        'reportes': reportes
+    }
+
+    return render(
+        request,
+        'reportes/historial.html',
+        contexto
     )

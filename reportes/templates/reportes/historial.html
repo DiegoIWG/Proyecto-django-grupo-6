@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de reportes</title>
+</head>
+<body>
+
+    <h1>Historial de reportes</h1>
+
+    <p>
+        Aquí se conservan los reportes que
+        cumplieron sus 21 días de publicación.
+    </p>
+
+    <p>
+        Un reporte archivado no significa
+        que el problema haya sido solucionado.
+    </p>
+
+    <a href="{% url 'inicio' %}">
+        Volver al foro
+    </a>
+
+    <hr>
+
+    {% for reporte in reportes %}
+
+        <h3>
+            <a href="{% url 'detalle_reporte' reporte.id %}">
+                {{ reporte.titulo }}
+            </a>
+        </h3>
+
+        <p>
+            Sector: {{ reporte.get_sector_display }}
+        </p>
+
+        <p>
+            Prioridad: {{ reporte.prioridad }}
+        </p>
+
+        <p>
+            Apoyos históricos:
+            {{ reporte.apoyos.count }}
+        </p>
+
+        <p>
+            Publicado:
+            {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}
+        </p>
+
+        <p><strong>Estado: Archivado</strong></p>
+
+        <hr>
+
+    {% empty %}
+
+        <p>No hay reportes archivados todavía.</p>
+
+    {% endfor %}
+
+</body>
+</html>
