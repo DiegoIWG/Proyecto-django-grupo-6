@@ -63,6 +63,7 @@ class ApelacionAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'reporte',
+        'solicitante',
         'motivo_resumido',
         'estado',
         'fecha_solicitud',
@@ -159,6 +160,19 @@ class ApelacionAdmin(admin.ModelAdmin):
         super().save_model(
             request, obj, form, change
         )
+
+    @admin.display(description='Solicitante')
+    def solicitante(self, obj):
+
+        if not obj.usuario_id:
+            return 'Solicitud anterior al registro'
+
+        alias = (
+            obj.usuario.first_name.strip()
+            or 'Ciudadano'
+        )
+
+        return f'{alias} (cuenta #{obj.usuario_id})'
 
 
 @admin.register(Comentario)

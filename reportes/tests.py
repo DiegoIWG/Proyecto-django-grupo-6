@@ -441,7 +441,6 @@ class PruebasArchivado(TestCase):
 
 
 class PruebasApelaciones(TestCase):
-
     def setUp(self):
         self.reporte = Reporte.objects.create(
             titulo="Humo persistente",
@@ -463,6 +462,14 @@ class PruebasApelaciones(TestCase):
             args=[self.reporte.id]
         )
 
+        self.usuario = get_user_model().objects.create_user(
+            username='12345678-5',
+            first_name='VecinoPrueba',
+            password='ClaveSeguraDePrueba2026!'
+        )
+
+        self.client.force_login(self.usuario)
+
     def test_enviar_apelacion(self):
         respuesta = self.client.post(
             self.url,
@@ -478,6 +485,11 @@ class PruebasApelaciones(TestCase):
         self.assertEqual(Apelacion.objects.count(), 1)
 
         apelacion = Apelacion.objects.first()
+
+        self.assertEqual(
+            apelacion.usuario,
+            self.usuario
+        )
 
         self.assertEqual(
             apelacion.estado,
@@ -540,6 +552,35 @@ class PruebasApelaciones(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 302)
+
+        self.assertEqual(
+            Apelacion.objects.count(),
+            0
+        )
+
+    def test_visitante_no_puede_apelar(self):
+
+        self.client.logout()
+
+        respuesta = self.client.post(
+            self.url,
+            {
+                'motivo': (
+                    'El problema ambiental todavía '
+                    'no se ha solucionado.'
+                )
+            }
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302
+        )
+
+        self.assertIn(
+            reverse('iniciar_sesion'),
+            respuesta.url
+        )
 
         self.assertEqual(
             Apelacion.objects.count(),

@@ -216,9 +216,26 @@
                 ¿El problema ambiental continúa?
             </p>
 
-            <a href="{% url 'solicitar_apelacion' reporte.id %}">
-                Solicitar reactivación
-            </a>
+            {% if user.is_authenticated %}    
+                
+                <a href="{% url 'solicitar_apelacion' reporte.id %}">
+                    Solicitar reactivación
+                </a>
+            
+            {% else %}
+
+                <p>
+                    Debes iniciar sesión para solicitar
+                    la reactivación de este reporte.
+                </p>
+
+                {% url 'solicitar_apelacion' reporte.id as apelacion_url %}
+
+                <a href="{% url 'iniciar_sesion' %}?next={{ apelacion_url|urlencode }}">
+                    Iniciar sesión
+                </a>
+
+            {% endif %}
 
         {% endif %}
 

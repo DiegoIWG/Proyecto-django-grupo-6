@@ -236,6 +236,7 @@ def historial(request):
     )
 
 
+@login_required
 @require_http_methods(["GET", "POST"])
 def solicitar_apelacion(request, reporte_id):
 
@@ -273,6 +274,7 @@ def solicitar_apelacion(request, reporte_id):
 
         apelacion = formulario.save(commit=False)
         apelacion.reporte = reporte
+        apelacion.usuario = request.user
 
         try:
             with transaction.atomic():

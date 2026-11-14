@@ -146,6 +146,14 @@ class Apelacion(models.Model):
         related_name='apelaciones'
     )
 
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='apelaciones_ciudadanas'
+    )
+
     motivo = models.TextField(max_length=1000)
 
     estado = models.CharField(
