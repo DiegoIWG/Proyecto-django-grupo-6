@@ -9,6 +9,43 @@
             Ver historial de reportes antiguos
         </a>
     </p>
+
+    {% if user.is_authenticated %}
+
+        <p>
+            Sesión iniciada como:
+            <strong>
+                {{ user.first_name|default:"Ciudadano" }}
+            </strong>
+        </p>
+
+        <form method="POST"
+            action="{% url 'cerrar_sesion' %}">
+
+            {% csrf_token %}
+
+            <button type="submit">
+                Cerrar sesión
+            </button>
+
+        </form>
+
+    {% else %}
+
+        <p>
+            <a href="{% url 'iniciar_sesion' %}">
+                Iniciar sesión
+            </a>
+        </p>
+
+        <p>
+            <a href="{% url 'registrarse' %}">
+                Crear cuenta
+            </a>
+        </p>
+
+    {% endif %}
+
 </head>
 <body>
 

@@ -3,11 +3,12 @@ from django.urls import reverse
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from .clasificacion import clasificar_reporte
 from .models import Reporte, Apoyo, Apelacion
 from .clasificacion import clasificar_reporte
 from datetime import timedelta
-
+from .rut import normalizar_rut
 
 class PruebasClasificacion(SimpleTestCase):
 
@@ -874,4 +875,71 @@ class PruebasOrdenForo(TestCase):
         self.assertEqual(
             reportes[0].pk,
             self.reactivado.pk
+        )
+
+
+class PruebasCuentasRut(TestCase):
+
+    def test_normalizar_rut(self):
+        self.assertEqual(
+            normalizar_rut('12.345.678-5'),
+            '12345678-5'
+        )
+
+    def test_rut_incorrecto(self):
+        with self.assertRaises(ValidationError):
+            normalizar_rut('12.345.678-9')
+
+    def test_registro_correcto(self):
+        respuesta = self.client.post(
+            reverse('registrarse'),
+            {
+                'username': '12.345.678-5',
+                'first_name': 'Vecino',
+                'email': 'prueba@example.com',
+                'password1': 'ClaveSeguraDePrueba2026!',
+                'password2': 'ClaveSeguraDePrueba2026!'
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+
+        usuario = get_user_model().objects.get(
+            username='12345678-5'
+        )
+
+        self.assertTrue(
+            usuario.check_password(
+                'ClaveSeguraDePrueba2026!'
+            )
+        )
+
+    def test_inicio_y_cierre_sesion(self):
+        get_user_model().objects.create_user(
+            username='12345678-5',
+            password='ClaveSeguraDePrueba2026!'
+        )
+
+        respuesta = self.client.post(
+            reverse('iniciar_sesion'),
+            {
+                'username': '12.345.678-5',
+                'password': 'ClaveSeguraDePrueba2026!'
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+
+        foro = self.client.get(reverse('inicio'))
+
+        self.assertTrue(
+            foro.wsgi_request.user.is_authenticated
+        )
+
+        self.client.post(reverse('cerrar_sesion'))
+
+        foro = self.client.get(reverse('inicio'))
+
+        self.assertFalse(
+            foro.wsgi_request.user.is_authenticated
         )

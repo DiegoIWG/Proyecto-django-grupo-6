@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar sesión</title>
+</head>
+<body>
+
+    <h1>Iniciar sesión</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        {% if next %}
+            <input
+                type="hidden"
+                name="next"
+                value="{{ next }}"
+            >
+        {% endif %}
+
+        <button type="submit">
+            Iniciar sesión
+        </button>
+    </form>
+
+    <p>
+        ¿Todavía no tienes cuenta?
+        <a href="{% url 'registrarse' %}">
+            Regístrate
+        </a>
+    </p>
+
+    <a href="{% url 'inicio' %}">
+        Volver al foro
+    </a>
+
+</body>
+</html>

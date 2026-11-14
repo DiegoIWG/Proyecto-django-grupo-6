@@ -4,8 +4,9 @@ from django.db.models import Count, F, Q
 from django.http import HttpResponseForbidden
 from django.db.models.functions import Coalesce
 from django.db import IntegrityError, transaction
+from django.contrib.auth import login
 from .models import Reporte, Apoyo, Apelacion
-from .forms import ReporteForm, ApelacionForm
+from .forms import ReporteForm, ApelacionForm, RegistroRutForm
 from .vigencia import fecha_limite
 
 def inicio(request):
@@ -287,4 +288,30 @@ def solicitar_apelacion(request, reporte_id):
             'formulario': formulario,
             'pendiente': False
         }
+    )
+
+
+def registrarse(request):
+
+    if request.user.is_authenticated:
+        return redirect('inicio')
+
+    formulario = RegistroRutForm(
+        request.POST
+        if request.method == 'POST'
+        else None
+    )
+
+    if request.method == 'POST' and formulario.is_valid():
+
+        usuario = formulario.save()
+
+        login(request, usuario)
+
+        return redirect('inicio')
+
+    return render(
+        request,
+        'reportes/registrarse.html',
+        {'formulario': formulario}
     )

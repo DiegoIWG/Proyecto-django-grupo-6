@@ -1,5 +1,9 @@
 from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.core.exceptions import ValidationError
 from .models import Reporte, Apelacion
+from .rut import normalizar_rut
 
 class ReporteForm(forms.ModelForm):
 
@@ -80,3 +84,66 @@ class ApelacionForm(forms.ModelForm):
             )
 
         return motivo
+
+
+class RegistroRutForm(UserCreationForm):
+
+    username = forms.CharField(
+        label='RUT',
+        max_length=15
+    )
+
+    first_name = forms.CharField(
+        label='Alias público (opcional)',
+        max_length=40,
+        required=False
+    )
+
+    email = forms.EmailField(
+        label='Correo electrónico',
+        required=True
+    )
+
+    class Meta(UserCreationForm.Meta):
+        fields = (
+            'username',
+            'first_name',
+            'email',
+            'password1',
+            'password2'
+        )
+
+    def clean_username(self):
+        rut = normalizar_rut(
+            self.cleaned_data['username']
+        )
+
+        if get_user_model().objects.filter(
+            username=rut
+        ).exists():
+            raise ValidationError(
+                'No se puede registrar este RUT.'
+            )
+
+        return rut
+
+
+class IngresoRutForm(AuthenticationForm):
+
+    username = forms.CharField(
+        label='RUT',
+        max_length=15
+    )
+
+    def clean(self):
+        valor = self.cleaned_data.get('username')
+
+        if valor:
+            try:
+                self.cleaned_data['username'] = (
+                    normalizar_rut(valor)
+                )
+            except ValidationError:
+                raise self.get_invalid_login_error()
+
+        return super().clean()

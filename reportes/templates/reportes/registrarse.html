@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear cuenta</title>
+</head>
+<body>
+
+    <h1>Crear cuenta</h1>
+
+    <p>
+        Regístrate para participar en
+        Tu opinión SÍ importa.
+    </p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ formulario.as_p }}
+
+        <button type="submit">
+            Crear cuenta
+        </button>
+    </form>
+
+    <p>
+        ¿Ya tienes una cuenta?
+        <a href="{% url 'iniciar_sesion' %}">
+            Iniciar sesión
+        </a>
+    </p>
+
+    <a href="{% url 'inicio' %}">
+        Volver al foro
+    </a>
+
+</body>
+</html>
