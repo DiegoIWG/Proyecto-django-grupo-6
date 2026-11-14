@@ -223,21 +223,44 @@
         {% endif %}
 
     {% else %}
+        
+    {% if user.is_authenticated %}
+            <form method="POST"
+                action="{% url 'apoyar_reporte' reporte.id %}">
 
-        <form method="POST"
-            action="{% url 'apoyar_reporte' reporte.id %}">
+                {% csrf_token %}
 
-            {% csrf_token %}
+                <button type="submit">
+                    {% if apoyado %}
+                        Quitar mi apoyo
+                    {% else %}
+                        Apoyar este reporte
+                    {% endif %}
+                </button>
 
-            <button type="submit">
-                {% if apoyado %}
-                    Quitar mi apoyo
-                {% else %}
-                    Apoyar este reporte
-                {% endif %}
-            </button>
+            </form>
+        
+        {% else %}
 
-        </form>
+            <p>
+                Para apoyar este reporte,
+                primero debes iniciar sesión.
+            </p>
+
+            {% url 'detalle_reporte' reporte.id as detalle_url %}
+
+            <a href="{% url 'iniciar_sesion' %}?next={{ detalle_url|urlencode }}">
+                Iniciar sesión
+            </a>
+
+            <p>
+                ¿Todavía no tienes una cuenta?
+                <a href="{% url 'registrarse' %}">
+                    Registrarse
+                </a>
+            </p>
+
+        {% endif %}
 
     {% endif %}
     

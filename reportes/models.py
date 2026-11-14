@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from .clasificacion import clasificar_reporte
 from .vigencia import fecha_limite
 
@@ -89,7 +90,20 @@ class Apoyo(models.Model):
         related_name='apoyos'
     )
 
-    sesion = models.CharField(max_length=40)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='apoyos_ciudadanos'
+    )
+
+    sesion = models.CharField(
+        max_length=40,
+        null=True,
+        blank=True,
+        default=None
+        )
 
     periodo = models.PositiveIntegerField(
         default=1
@@ -101,7 +115,19 @@ class Apoyo(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['reporte', 'sesion', 'periodo'],
-                name='apoyo_unico_por_periodo'
+                condition=models.Q(
+                    usuario__isnull=False
+                ),
+                name='apoyo_unico_usuario_periodo'
+            ),
+            
+            models.UniqueConstraint(
+                fields=['reporte', 'sesion', 'periodo'],
+                condition=(
+                    models.Q(usuario__isnull=True)
+                    & ~models.Q(sesion='')
+                ),
+                name='apoyo_unico_sesion_anonimo'
             )
         ]
 

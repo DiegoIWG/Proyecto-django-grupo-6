@@ -199,6 +199,13 @@ class PruebasApoyos(TestCase):
             args=[self.reporte.id]
         )
 
+        self.usuario = get_user_model().objects.create_user(
+            username='usuario_prueba_apoyos',
+            password='ClaveSeguraDePrueba2026!'
+        )
+
+        self.client.force_login(self.usuario)
+
     def test_agregar_y_quitar_apoyo(self):
         self.client.post(self.url)
 
@@ -217,14 +224,23 @@ class PruebasApoyos(TestCase):
             Apoyo.objects.count(), 0
         )
 
+    
     def test_dos_navegadores(self):
         otro_navegador = Client()
+        otro_navegador.force_login(self.usuario)
 
         self.client.post(self.url)
+
+        self.assertEqual(
+            Apoyo.objects.count(),
+            1
+        )
+
         otro_navegador.post(self.url)
 
         self.assertEqual(
-            Apoyo.objects.count(), 2
+            Apoyo.objects.count(),
+            0
         )
 
     def test_no_permite_get(self):
@@ -269,6 +285,44 @@ class PruebasApoyos(TestCase):
 
         self.assertEqual(
             reporte.total_apoyos, 1
+        )
+
+    def test_dos_usuarios_diferentes(self):
+        otro_usuario = get_user_model().objects.create_user(
+            username='segundo_usuario_pruebas',
+            password='OtraClaveSegura2026!'
+        )
+
+        otro_navegador = Client()
+        otro_navegador.force_login(otro_usuario)
+
+        self.client.post(self.url)
+        otro_navegador.post(self.url)
+
+        self.assertEqual(
+            Apoyo.objects.count(),
+            2
+        )
+
+    def test_visitante_no_puede_apoyar(self):
+
+        self.client.logout()
+
+        respuesta = self.client.post(self.url)
+
+        self.assertEqual(
+            respuesta.status_code,
+            302
+        )
+
+        self.assertEqual(
+            Apoyo.objects.count(),
+            0
+        )
+
+        self.assertIn(
+            reverse('iniciar_sesion'),
+            respuesta.url
         )
 
 
@@ -663,6 +717,13 @@ class PruebasApoyosPorPeriodo(TestCase):
             'apoyar_reporte',
             args=[self.reporte.pk]
         )
+
+        self.usuario = get_user_model().objects.create_user(
+            username='usuario_pruebas_periodos',
+            password='ClaveSeguraDePrueba2026!'
+        )
+
+        self.client.force_login(self.usuario)
 
     def reactivar_reporte(self):
 

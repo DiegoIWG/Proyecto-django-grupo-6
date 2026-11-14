@@ -5,6 +5,8 @@ from django.http import HttpResponseForbidden
 from django.db.models.functions import Coalesce
 from django.db import IntegrityError, transaction
 from django.contrib.auth import login
+from django.urls import reverse
+from urllib.parse import urlencode
 from .models import Reporte, Apoyo, Apelacion
 from .forms import ReporteForm, ApelacionForm, RegistroRutForm
 from .vigencia import fecha_limite
@@ -85,7 +87,6 @@ def inicio(request):
 
 
 def crear_reporte(request):
-
     if request.method == 'POST':
         formulario = ReporteForm(request.POST)
 
@@ -117,12 +118,10 @@ def detalle_reporte(request, reporte_id):
             'lng': reporte.longitud
         }
 
-    sesion = request.session.session_key
-
-    if sesion:
+    if request.user.is_authenticated:
         apoyado = Apoyo.objects.filter(
             reporte=reporte,
-            sesion=sesion,
+            usuario=request.user,
             periodo=reporte.numero_periodo
         ).exists()
     else:
@@ -177,21 +176,29 @@ def apoyar_reporte(request, reporte_id):
         Reporte,
         id=reporte_id
     )
-    
+
     if reporte.esta_archivado:
         return HttpResponseForbidden(
-            "Este reporte está archivado y "
-            "ya no puede recibir apoyos."
+            "Este reporte está archivado "
+            "y ya no recibe apoyos."
         )
 
-    if not request.session.session_key:
-        request.session.create()
-        request.session.modified = True
+    if not request.user.is_authenticated:
+        ingreso = reverse('iniciar_sesion')
+        destino = reverse(
+            'detalle_reporte',
+            args=[reporte.id]
+        )
+
+        return redirect(
+            f'{ingreso}?{urlencode({"next": destino})}'
+        )
 
     apoyo, creado = Apoyo.objects.get_or_create(
         reporte=reporte,
-        sesion=request.session.session_key,
-        periodo=reporte.numero_periodo
+        usuario=request.user,
+        periodo=reporte.numero_periodo,
+        defaults={'sesion': None}
     )
 
     if not creado:
