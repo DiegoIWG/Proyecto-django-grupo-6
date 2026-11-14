@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from .models import Reporte, Apelacion
+from .models import Reporte, Apelacion, Comentario
 from .rut import normalizar_rut
 
 class ReporteForm(forms.ModelForm):
@@ -147,3 +147,34 @@ class IngresoRutForm(AuthenticationForm):
                 raise self.get_invalid_login_error()
 
         return super().clean()
+
+class ComentarioForm(forms.ModelForm):
+
+    class Meta:
+        model = Comentario
+        fields = ['contenido']
+
+        labels = {
+            'contenido': 'Tu comentario'
+        }
+
+        widgets = {
+            'contenido': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': (
+                    'Comparte información sobre '
+                    'este problema ambiental.'
+                )
+            })
+        }
+
+    def clean_contenido(self):
+        contenido = self.cleaned_data['contenido'].strip()
+
+        if len(contenido) < 15:
+            raise forms.ValidationError(
+                'El comentario debe tener '
+                'al menos 15 caracteres.'
+            )
+
+        return contenido

@@ -185,3 +185,41 @@ class Apelacion(models.Model):
 
     def __str__(self):
         return f'Apelacion del reporte {self.reporte_id}'
+
+class Comentario(models.Model):
+
+    reporte = models.ForeignKey(
+        Reporte,
+        on_delete=models.CASCADE,
+        related_name='comentarios'
+    )
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='comentarios_ciudadanos'
+    )
+
+    alias_publico = models.CharField(
+        max_length=40
+    )
+
+    contenido = models.TextField(
+        max_length=1000
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    visible = models.BooleanField(
+        default=True
+    )
+
+    class Meta:
+        ordering = ['-fecha_creacion', '-id']
+
+    def __str__(self):
+        return f'Comentario de {self.alias_publico}'

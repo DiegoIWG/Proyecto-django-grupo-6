@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils import timezone
-from .models import Reporte, Apelacion
+from .models import Reporte, Apelacion, Comentario
 
 @admin.register(Reporte)
 class ReporteAdmin(admin.ModelAdmin):
@@ -159,3 +159,37 @@ class ApelacionAdmin(admin.ModelAdmin):
         super().save_model(
             request, obj, form, change
         )
+
+
+@admin.register(Comentario)
+class ComentarioAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id',
+        'reporte',
+        'alias_publico',
+        'fecha_creacion',
+        'visible'
+    )
+
+    list_display_links = ('id',)
+
+    list_editable = ('visible',)
+
+    list_filter = ('visible',)
+
+    search_fields = (
+        'alias_publico',
+        'contenido',
+        'reporte__titulo'
+    )
+
+    readonly_fields = (
+        'usuario',
+        'alias_publico',
+        'contenido',
+        'fecha_creacion'
+    )
+
+    def has_add_permission(self, request):
+        return False

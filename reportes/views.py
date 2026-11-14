@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
 from django.db.models import Count, F, Q
 from django.http import HttpResponseForbidden
@@ -7,8 +8,8 @@ from django.db import IntegrityError, transaction
 from django.contrib.auth import login
 from django.urls import reverse
 from urllib.parse import urlencode
-from .models import Reporte, Apoyo, Apelacion
-from .forms import ReporteForm, ApelacionForm, RegistroRutForm
+from .models import Reporte, Apoyo, Apelacion, Comentario
+from .forms import ReporteForm, ApelacionForm, RegistroRutForm,ComentarioForm
 from .vigencia import fecha_limite
 
 def inicio(request):
@@ -161,6 +162,10 @@ def detalle_reporte(request, reporte_id):
 
     contexto['apoyos_totales'] = (
         reporte.apoyos.count()
+    )
+
+    contexto['comentarios'] = (
+        reporte.comentarios.filter(visible=True)
     )
 
     return render(
@@ -321,4 +326,52 @@ def registrarse(request):
         request,
         'reportes/registrarse.html',
         {'formulario': formulario}
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def comentar_reporte(request, reporte_id):
+
+    reporte = get_object_or_404(
+        Reporte,
+        id=reporte_id
+    )
+
+    if reporte.esta_archivado:
+        return HttpResponseForbidden(
+            'Los reportes archivados '
+            'ya no reciben comentarios.'
+        )
+
+    formulario = ComentarioForm(
+        request.POST if request.method == 'POST' else None
+    )
+
+    if request.method == 'POST' and formulario.is_valid():
+
+        comentario = formulario.save(commit=False)
+
+        comentario.reporte = reporte
+        comentario.usuario = request.user
+
+        comentario.alias_publico = (
+            request.user.first_name.strip()
+            or 'Ciudadano'
+        )
+
+        comentario.save()
+
+        return redirect(
+            'detalle_reporte',
+            reporte_id=reporte.id
+        )
+
+    return render(
+        request,
+        'reportes/comentar_reporte.html',
+        {
+            'reporte': reporte,
+            'formulario': formulario
+        }
     )

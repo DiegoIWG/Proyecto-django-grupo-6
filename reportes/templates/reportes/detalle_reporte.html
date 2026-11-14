@@ -335,5 +335,62 @@
             <p>Este reporte no tiene una ubicación en el mapa.</p>
 
         {% endif %}
+
+    <hr>
+
+    <h3>Comentarios ciudadanos</h3>
+
+    {% if archivado %}
+
+        <p>
+            Este reporte está archivado.
+            Sus comentarios siguen disponibles,
+            pero ya no recibe nuevos.
+        </p>
+
+    {% elif user.is_authenticated %}
+
+        <a href="{% url 'comentar_reporte' reporte.id %}">
+            Agregar comentario
+        </a>
+
+    {% else %}
+
+        <p>
+            Debes iniciar sesión para comentar.
+        </p>
+
+        {% url 'comentar_reporte' reporte.id as comentar_url %}
+
+        <a href="{% url 'iniciar_sesion' %}?next={{ comentar_url|urlencode }}">
+            Iniciar sesión
+        </a>
+
+    {% endif %}
+
+    <hr>
+
+    {% for comentario in comentarios %}
+
+        <p>
+            <strong>{{ comentario.alias_publico }}</strong>
+        </p>
+
+        <p>
+            <small>
+                {{ comentario.fecha_creacion|date:"d/m/Y H:i" }}
+            </small>
+        </p>    
+
+        <p>{{ comentario.contenido }}</p>
+
+        <hr>
+
+    {% empty %}
+
+        <p>Este reporte todavía no tiene comentarios.</p>
+
+    {% endfor %}
+
 </body>
 </html>

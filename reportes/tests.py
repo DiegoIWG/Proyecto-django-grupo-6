@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from .clasificacion import clasificar_reporte
-from .models import Reporte, Apoyo, Apelacion
+from .models import Reporte, Apoyo, Apelacion, Comentario
 from .clasificacion import clasificar_reporte
 from datetime import timedelta
 from .rut import normalizar_rut
@@ -1004,3 +1004,108 @@ class PruebasCuentasRut(TestCase):
         self.assertFalse(
             foro.wsgi_request.user.is_authenticated
         )
+
+
+class PruebasComentariosUsuarios(TestCase):
+
+    def setUp(self):
+        self.usuario = get_user_model().objects.create_user(
+            username='12345678-5',
+            first_name='VecinoQuintero',
+            password='ClaveSeguraDePrueba2026!'
+        )
+
+        self.reporte = Reporte.objects.create(
+            titulo='Humo cerca de viviendas',
+            descripcion='Hay humo todos los dias.',
+            sector='quintero'
+        )
+
+        self.url = reverse(
+            'comentar_reporte',
+            args=[self.reporte.id]
+        )
+
+    def test_usuario_puede_comentar(self):
+        self.client.force_login(self.usuario)
+
+        respuesta = self.client.post(
+            self.url,
+            {
+                'contenido': (
+                    'El humo volvió a aparecer '
+                    'durante la mañana.'
+                )
+            }
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(Comentario.objects.count(), 1)
+
+        comentario = Comentario.objects.first()
+
+        self.assertEqual(comentario.usuario, self.usuario)
+        self.assertEqual(
+            comentario.alias_publico,
+            'VecinoQuintero'
+        )
+
+    def test_visitante_debe_ingresar(self):
+        respuesta = self.client.post(
+            self.url,
+            {'contenido': 'El problema sigue ocurriendo.'}
+        )
+
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(Comentario.objects.count(), 0)
+
+    def test_archivado_no_recibe_comentarios(self):
+        self.client.force_login(self.usuario)
+
+        Reporte.objects.filter(
+            pk=self.reporte.pk
+        ).update(
+            fecha_creacion=timezone.now()
+            - timedelta(days=22)
+        )
+
+        respuesta = self.client.post(
+            self.url,
+            {'contenido': 'El problema sigue ocurriendo.'}
+        )
+
+        self.assertEqual(respuesta.status_code, 403)
+        self.assertEqual(Comentario.objects.count(), 0)
+
+    def test_comentario_oculto(self):
+        comentario = Comentario.objects.create(
+            reporte=self.reporte,
+            usuario=self.usuario,
+            alias_publico='VecinoQuintero',
+            contenido='Comentario oculto de prueba.',
+            visible=False
+        )
+
+        respuesta = self.client.get(
+            reverse('detalle_reporte', args=[self.reporte.pk])
+        )
+
+        self.assertNotContains(
+            respuesta,
+            comentario.contenido
+        )
+
+    def test_no_mostrar_rut_en_comentario(self):
+        Comentario.objects.create(
+            reporte=self.reporte,
+            usuario=self.usuario,
+            alias_publico='VecinoQuintero',
+            contenido='El humo continúa en este sector.'
+        )
+
+        respuesta = self.client.get(
+            reverse('detalle_reporte', args=[self.reporte.pk])
+        )
+
+        self.assertContains(respuesta, 'VecinoQuintero')
+        self.assertNotContains(respuesta, '12345678-5')

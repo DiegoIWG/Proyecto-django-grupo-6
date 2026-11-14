@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comentar reporte</title>
+</head>
+<body>
+
+    <h1>Agregar comentario</h1>
+
+    <h2>{{ reporte.titulo }}</h2>
+
+    <p>
+        Tu comentario se publicará con
+        tu alias, no con tu RUT.
+    </p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ formulario.as_p }}
+
+        <button type="submit">
+            Publicar comentario
+        </button>
+    </form>
+
+    <p>
+        Evita compartir datos personales
+        o información no comprobada.
+    </p>
+
+    <a href="{% url 'detalle_reporte' reporte.id %}">
+        Volver al reporte
+    </a>
+
+</body>
+</html>
