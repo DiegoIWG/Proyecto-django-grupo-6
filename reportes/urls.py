@@ -55,4 +55,10 @@ urlpatterns = [
         ),
         name='cerrar_sesion'
     ),
+
+    path(
+        'reporte/<int:reporte_id>/comentar/',
+        views.comentar_reporte,
+        name='comentar_reporte'
+    ),
 ]
