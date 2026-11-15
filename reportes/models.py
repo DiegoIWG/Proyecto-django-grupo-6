@@ -122,10 +122,8 @@ class Apoyo(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['reporte', 'sesion', 'periodo'],
-                condition=models.Q(
-                    usuario__isnull=False
-                ),
+                fields=['reporte', 'usuario', 'periodo'],
+                condition=models.Q(usuario__isnull=False),
                 name='apoyo_unico_usuario_periodo'
             ),
             
