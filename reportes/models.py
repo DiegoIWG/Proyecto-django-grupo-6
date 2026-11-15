@@ -8,7 +8,6 @@ class Reporte(models.Model):
     SECTORES = [
         ('quintero', 'Quintero'),
         ('puchuncavi', 'Puchuncaví'),
-        ('ventanas', 'Ventanas'),
     ]
 
     titulo = models.CharField(max_length=150)

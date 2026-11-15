@@ -4,6 +4,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from .models import Reporte, Apelacion, Comentario
 from .rut import normalizar_rut
+from .geografia import punto_permitido
+
 
 class ReporteForm(forms.ModelForm):
 
@@ -27,31 +29,53 @@ class ReporteForm(forms.ModelForm):
             'longitud': forms.HiddenInput(),
         }
 
+    
     def clean(self):
         datos = super().clean()
 
+        sector = datos.get('sector')
         latitud = datos.get('latitud')
         longitud = datos.get('longitud')
+        direccion = (datos.get('direccion') or '').strip()
 
-        if (latitud is None) != (longitud is None):
+        if latitud is None and longitud is None:
+            if direccion:
+                self.add_error(
+                    'direccion',
+                    'Selecciona un punto en el mapa '
+                    'para indicar una dirección.'
+                )
+            return datos
+
+        if latitud is None or longitud is None:
             raise forms.ValidationError(
-                "Debes indicar ambas coordenadas."
+                'Debes indicar ambas coordenadas.'
             )
 
-        if latitud is not None:
-            if not -90 <= latitud <= 90:
-                self.add_error(
-                    'latitud',
-                    'Latitud fuera de rango.'
-                )
+        if not (-90 <= latitud <= 90):
+            self.add_error(
+                'latitud',
+                'Latitud fuera de rango.'
+            )
+            return datos
 
-            if not -180 <= longitud <= 180:
-                self.add_error(
-                    'longitud',
-                    'Longitud fuera de rango.'
-                )
+        if not (-180 <= longitud <= 180):
+            self.add_error(
+                'longitud',
+                'Longitud fuera de rango.'
+            )
+            return datos
+
+        if sector and not punto_permitido(
+            sector, longitud, latitud
+        ):
+            raise forms.ValidationError(
+                'El punto seleccionado está fuera '
+                'de la comuna indicada.'
+            )
 
         return datos
+
 
 
 class ApelacionForm(forms.ModelForm):
