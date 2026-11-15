@@ -2,77 +2,146 @@
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Mis reportes | Tu opinión SÍ importa</title>
 
     <link rel="stylesheet"
-    href="{% static 'reportes/css/estilos.css' %}">
-
-    <title>Mis reportes</title>
+        href="{% static 'reportes/css/estilos.css' %}">
 </head>
+
 <body>
 
-    <h1>Mis reportes</h1>
+    <main class="pagina-listado">
 
-    <p>
-        Aquí puedes consultar los reportes
-        que has publicado.
-    </p>
+        <!-- Navegación -->
+        <nav class="barra-interior">
 
-    <a href="{% url 'crear_reporte' %}">
-        Crear nuevo reporte
-    </a>
-
-    <hr>
-
-    {% for reporte in reportes %}
-
-        <h3>
-            <a href="{% url 'detalle_reporte' reporte.id %}">
-                {{ reporte.titulo }}
+            <a href="{% url 'inicio' %}" class="marca">
+                🌿 Tu opinión SÍ importa
             </a>
-        </h3>
 
-        <p>
-            <strong>Sector:</strong>
-            {{ reporte.get_sector_display }}
-        </p>
+            <a href="{% url 'inicio' %}"
+                class="enlace-volver">
+                ← Volver al foro
+            </a>
 
-        <p>
-            <strong>Prioridad:</strong>
-            {{ reporte.prioridad }}
-        </p>
+        </nav>
 
-        <p>
-            <strong>Publicado:</strong>
-            {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}
-        </p>
+        <!-- Encabezado -->
+        <header class="listado-hero">
 
-        {% if reporte.esta_archivado %}
+            <p class="sobretitulo">
+                Participación ciudadana
+            </p>
 
-            <p><strong>Estado: Archivado</strong></p>
+            <h1>Mis reportes</h1>
 
-        {% else %}
+            <p>
+                Consulta los reportes que has publicado
+                y revisa si continúan activos o están
+                archivados.
+            </p>
 
-            <p><strong>Estado: Activo</strong></p>
+            <a href="{% url 'crear_reporte' %}"
+                class="boton">
+                + Crear nuevo reporte
+            </a>
 
-        {% endif %}
+        </header>
 
-        <hr>
+        <!-- Listado de reportes -->
+        <section class="lista-reportes">
 
-    {% empty %}
+            {% for reporte in reportes %}
 
-        <p>
-            Todavía no has publicado reportes
-            desde esta cuenta.
-        </p>
+                <article class="reporte-card">
 
-    {% endfor %}
+                    <h2>
+                        <a href="{% url 'detalle_reporte' reporte.id %}">
+                            {{ reporte.titulo }}
+                        </a>
+                    </h2>
 
-    <a href="{% url 'inicio' %}">
-        Volver al foro
-    </a>
+                    <!-- Sector -->
+                    <p>
+                        <strong>Comuna:</strong>
+                        {{ reporte.get_sector_display }}
+                    </p>
+
+                    <!-- Prioridad -->
+                    <p>
+                        <strong>Prioridad:</strong>
+
+                        <span class="etiqueta prioridad-{{ reporte.prioridad|lower }}">
+                            {{ reporte.prioridad }}
+                        </span>
+                    </p>
+
+                    <!-- Fecha -->
+                    <p>
+                        <strong>Publicado:</strong>
+                        {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}
+                    </p>
+
+                    <!-- Estado -->
+                    <p>
+                        <strong>Estado:</strong>
+
+                        {% if reporte.esta_archivado %}
+
+                            <span class="estado-reporte estado-archivado">
+                                Archivado
+                            </span>
+
+                        {% else %}
+
+                            <span class="estado-reporte estado-activo">
+                                Activo
+                            </span>
+
+                        {% endif %}
+                    </p>
+
+                    <!-- Acciones -->
+                    <div class="reporte-acciones">
+
+                        <a href="{% url 'detalle_reporte' reporte.id %}"
+                            class="enlace-discreto">
+                            Ver detalles
+                        </a>
+
+                    </div>
+
+                </article>
+
+            {% empty %}
+
+                <div class="detalle-panel">
+
+                    <h2>Aún no tienes reportes</h2>
+
+                    <p>
+                        Todavía no has publicado reportes
+                        desde esta cuenta.
+                    </p>
+
+                    <a href="{% url 'crear_reporte' %}"
+                        class="boton">
+                        Crear mi primer reporte
+                    </a>
+
+                </div>
+
+            {% endfor %}
+
+        </section>
+
+    </main>
 
 </body>
 </html>
