@@ -1,7 +1,14 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet"
+        href="{% static 'reportes/css/estilos.css' %}">
+
     <title>{{ reporte.titulo }}</title>
     
     {% if coordenadas %}
@@ -12,8 +19,44 @@
     {% endif %}
 </head>
 <body>
+    <main class="pagina-detalle">
 
-    <h1>{{ reporte.titulo }}</h1>
+        <nav class="barra-interior">
+            <a href="{% url 'inicio' %}" class="marca">
+                🌿 Tu opinión SÍ importa
+            </a>
+
+            <a href="{% url 'inicio' %}"
+                class="enlace-volver">
+                ← Volver al foro
+            </a>
+        </nav>
+
+        <header class="detalle-cabecera">
+
+            <p class="sobretitulo">
+                Reporte ciudadano
+            </p>
+
+            <h1>{{ reporte.titulo }}</h1>
+
+            <div class="detalle-resumen">
+
+                <span>
+                    📍 {{ reporte.get_sector_display }}
+                </span>
+
+                <span class="etiqueta prioridad-{{ reporte.prioridad|lower }}">
+                    {{ reporte.prioridad }}
+                </span>
+
+                <span>
+                {{ reporte.fecha_creacion|date:"d/m/Y" }}
+                </span>
+
+            </div>
+
+        </header>
 
     <hr>
 
@@ -22,43 +65,55 @@
         {{ reporte.get_sector_display }}
     </p>
 
+    <h2>Descripción del problema</h2>
+    <section class="detalle-panel">
     <p>
         <strong>Descripción:</strong>
     </p>
 
     <p>{{ reporte.descripcion|linebreaksbr }}</p>
+    </section>
+    
+        <section class="detalle-panel">
+        <h3>Clasificación automática</h3>
 
-    <h3>Clasificación automática</h3>
+        <p>
+            <strong>Prioridad:</strong>
+            <span class="etiqueta prioridad-{{ reporte.prioridad|lower }}">
+                {{ reporte.prioridad }}
+            </span>
+        </p>
+
+        <p>
+            <strong>Puntaje:</strong>
+            {{ reporte.puntaje }}
+        </p>
+
+        <p><strong>Motivos detectados:</strong></p>
+
+        <ul class="detalle-motivos">
+            {% for motivo in reporte.motivos %}
+                <li>{{ motivo }}</li>
+            {% empty %}
+                <li>No se detectaron factores específicos.</li>
+            {% endfor %}
+        </ul>
+
+        <p>
+            <small>
+                Clasificación preliminar realizada
+                automáticamente según el contenido
+                del reporte.
+            </small>
+        </p>
+
+    </section>
 
     <p>
-        <strong>Prioridad:</strong>
-        {{ reporte.prioridad }}
+        <strong>Dirección:</strong>
+        {{ reporte.direccion|default:"No especificada" }}
     </p>
-
-    <p>
-        <strong>Puntaje:</strong>
-        {{ reporte.puntaje }}
-    </p>
-
-    <p><strong>Motivos detectados:</strong></p>
-
-    <ul>
-        {% for motivo in reporte.motivos %}
-            <li>{{ motivo }}</li>
-        {% empty %}
-            <li>No se detectaron factores específicos.</li>
-        {% endfor %}
-    </ul>
-
-    <p>
-        <small>
-            Clasificación preliminar realizada
-            automáticamente según el contenido
-            del reporte.
-        </small>
-    </p>
-
-
+    
     <p>
         <strong>Dirección:</strong>
         {{ reporte.direccion|default:"No especificada" }}
@@ -161,6 +216,7 @@
 
     <hr>
 
+    <section class="detalle-panel panel-apoyos">
     <h3>Apoyos ciudadanos</h3>
 
     <p>
@@ -183,7 +239,7 @@
             Período número {{ reporte.numero_periodo }}
         </small>
     </p>
-
+    </section>
 
     {% if archivado %}
 
@@ -355,6 +411,7 @@
 
     <hr>
 
+    <section class="detalle-panel panel-comentarios">
     <h3>Comentarios ciudadanos</h3>
 
     {% if archivado %}
@@ -408,6 +465,8 @@
         <p>Este reporte todavía no tiene comentarios.</p>
 
     {% endfor %}
+    </section>
 
+</main>
 </body>
 </html>
