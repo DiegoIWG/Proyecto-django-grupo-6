@@ -87,14 +87,16 @@ def inicio(request):
     )
 
 
+@login_required
 def crear_reporte(request):
     if request.method == 'POST':
         formulario = ReporteForm(request.POST)
 
         if formulario.is_valid():
-            formulario.save()
+            reporte = formulario.save(commit=False)
+            reporte.autor = request.user
+            reporte.save()
             return redirect('inicio')
-
     else:
         formulario = ReporteForm()
 
@@ -375,5 +377,21 @@ def comentar_reporte(request, reporte_id):
         {
             'reporte': reporte,
             'formulario': formulario
+        }
+    )
+
+
+@login_required
+def mis_reportes(request):
+
+    reportes = Reporte.objects.filter(
+        autor=request.user
+    ).order_by('-fecha_creacion', '-id')
+
+    return render(
+        request,
+        'reportes/mis_reportes.html',
+        {
+            'reportes': reportes
         }
     )

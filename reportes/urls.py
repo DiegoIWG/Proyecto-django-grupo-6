@@ -61,4 +61,10 @@ urlpatterns = [
         views.comentar_reporte,
         name='comentar_reporte'
     ),
+    
+    path(
+        'mis-reportes/',
+        views.mis_reportes,
+        name='mis_reportes'
+    ),
 ]

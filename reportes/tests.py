@@ -89,7 +89,6 @@ class PruebasReporte(TestCase):
 
 
 class PruebasForo(TestCase):
-
     def test_publicar_reporte(self):
 
         datos = {
@@ -112,6 +111,7 @@ class PruebasForo(TestCase):
             titulo='Humo cerca de un colegio'
         )
 
+        self.assertEqual(reporte.autor, self.usuario)
         self.assertEqual(reporte.prioridad, 'Alta')
         self.assertEqual(reporte.puntaje, 4)
         self.assertAlmostEqual(reporte.latitud, -32.78766)
@@ -183,6 +183,16 @@ class PruebasForo(TestCase):
         )
 
         self.assertEqual(respuesta.status_code, 404)
+
+
+    def setUp(self):
+
+        self.usuario = get_user_model().objects.create_user(
+            username='usuario_pruebas_foro',
+            password='ClaveSeguraDePrueba2026!'
+        )
+
+        self.client.force_login(self.usuario)
 
 
 class PruebasApoyos(TestCase):
@@ -1150,3 +1160,119 @@ class PruebasComentariosUsuarios(TestCase):
 
         self.assertContains(respuesta, 'VecinoQuintero')
         self.assertNotContains(respuesta, '12345678-5')
+
+
+class PruebasMisReportes(TestCase):
+
+    def setUp(self):
+
+        self.usuario = get_user_model().objects.create_user(
+            username='usuario_autor_1',
+            first_name='VecinoUno',
+            password='ClaveSeguraDePrueba2026!'
+        )
+
+        self.otro_usuario = get_user_model().objects.create_user(
+            username='usuario_autor_2',
+            first_name='VecinoDos',
+            password='OtraClaveSegura2026!'
+        )
+
+        self.propio = Reporte.objects.create(
+            titulo='Mi reporte ambiental',
+            descripcion='Hay humo en el sector.',
+            sector='quintero',
+            autor=self.usuario
+        )
+
+        self.ajeno = Reporte.objects.create(
+            titulo='Reporte de otro usuario',
+            descripcion='Hay basura acumulada.',
+            sector='ventanas',
+            autor=self.otro_usuario
+        )
+
+        self.client.force_login(self.usuario)
+
+    def test_solo_muestra_mis_reportes(self):
+
+        respuesta = self.client.get(
+            reverse('mis_reportes')
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            200
+        )
+
+        reportes = list(
+            respuesta.context['reportes']
+        )
+
+        self.assertIn(self.propio, reportes)
+        self.assertNotIn(self.ajeno, reportes)
+
+    def test_mis_reportes_requiere_sesion(self):
+
+        self.client.logout()
+
+        respuesta = self.client.get(
+            reverse('mis_reportes')
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302
+        )
+
+        self.assertIn(
+            reverse('iniciar_sesion'),
+            respuesta.url
+        )
+
+    def test_crear_reporte_requiere_sesion(self):
+
+        self.client.logout()
+
+        respuesta = self.client.post(
+            reverse('crear_reporte'),
+            {
+                'titulo': 'Publicación anónima',
+                'descripcion': 'Hay humo en el sector.',
+                'sector': 'quintero'
+            }
+        )
+
+        self.assertEqual(
+            respuesta.status_code,
+            302
+        )
+
+        self.assertFalse(
+            Reporte.objects.filter(
+                titulo='Publicación anónima'
+            ).exists()
+        )
+
+    def test_reporte_antiguo_permanece_visible(self):
+
+        Reporte.objects.filter(
+            pk=self.propio.pk
+        ).update(
+            fecha_creacion=timezone.now()
+            - timedelta(days=22)
+        )
+
+        respuesta = self.client.get(
+            reverse('mis_reportes')
+        )
+
+        self.assertContains(
+            respuesta,
+            'Mi reporte ambiental'
+        )
+
+        self.assertContains(
+            respuesta,
+            'Archivado'
+        )

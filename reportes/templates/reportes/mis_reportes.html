@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis reportes</title>
+</head>
+<body>
+
+    <h1>Mis reportes</h1>
+
+    <p>
+        Aquí puedes consultar los reportes
+        que has publicado.
+    </p>
+
+    <a href="{% url 'crear_reporte' %}">
+        Crear nuevo reporte
+    </a>
+
+    <hr>
+
+    {% for reporte in reportes %}
+
+        <h3>
+            <a href="{% url 'detalle_reporte' reporte.id %}">
+                {{ reporte.titulo }}
+            </a>
+        </h3>
+
+        <p>
+            <strong>Sector:</strong>
+            {{ reporte.get_sector_display }}
+        </p>
+
+        <p>
+            <strong>Prioridad:</strong>
+            {{ reporte.prioridad }}
+        </p>
+
+        <p>
+            <strong>Publicado:</strong>
+            {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}
+        </p>
+
+        {% if reporte.esta_archivado %}
+
+            <p><strong>Estado: Archivado</strong></p>
+
+        {% else %}
+
+            <p><strong>Estado: Activo</strong></p>
+
+        {% endif %}
+
+        <hr>
+
+    {% empty %}
+
+        <p>
+            Todavía no has publicado reportes
+            desde esta cuenta.
+        </p>
+
+    {% endfor %}
+
+    <a href="{% url 'inicio' %}">
+        Volver al foro
+    </a>
+
+</body>
+</html>

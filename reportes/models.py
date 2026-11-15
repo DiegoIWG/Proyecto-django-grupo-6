@@ -12,6 +12,15 @@ class Reporte(models.Model):
     ]
 
     titulo = models.CharField(max_length=150)
+    
+    autor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reportes_creados'
+    )
+
     descripcion = models.TextField()
     sector = models.CharField(max_length=20, choices=SECTORES)
     direccion = models.CharField(max_length=200, blank=True)
