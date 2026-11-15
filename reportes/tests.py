@@ -6,9 +6,10 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from .clasificacion import clasificar_reporte
 from .models import Reporte, Apoyo, Apelacion, Comentario
-from .clasificacion import clasificar_reporte
 from datetime import timedelta
 from .rut import normalizar_rut
+from .forms import ReporteForm
+from .geografia import punto_permitido
 
 class PruebasClasificacion(SimpleTestCase):
 
@@ -73,7 +74,7 @@ class PruebasReporte(TestCase):
         reporte = Reporte.objects.create(
             titulo="Basura acumulada",
             descripcion="Hay basura acumulada.",
-            sector="ventanas"
+            sector="puchuncavi"
         )
 
         self.assertEqual(reporte.prioridad, "Baja")
@@ -142,9 +143,9 @@ class PruebasForo(TestCase):
         )
 
         Reporte.objects.create(
-            titulo='Incendio en Ventanas',
+            titulo='Incendio en puchuncavi',
             descripcion='Hay un incendio activo.',
-            sector='ventanas'
+            sector='puchuncavi'
         )
 
         respuesta = self.client.get(
@@ -1188,7 +1189,7 @@ class PruebasMisReportes(TestCase):
         self.ajeno = Reporte.objects.create(
             titulo='Reporte de otro usuario',
             descripcion='Hay basura acumulada.',
-            sector='ventanas',
+            sector='puchuncavi',
             autor=self.otro_usuario
         )
 
@@ -1276,3 +1277,106 @@ class PruebasMisReportes(TestCase):
             respuesta,
             'Archivado'
         )
+
+
+class PruebasUbicacionReporte(TestCase):
+
+    def test_ubicacion_quintero_valida(self):
+        formulario = ReporteForm(data={
+            'titulo': 'Humo en Quintero',
+            'descripcion': 'Hay humo cerca de viviendas.',
+            'sector': 'quintero',
+            'direccion': '',
+            'latitud': '-32.78766',
+            'longitud': '-71.53228',
+        })
+
+        self.assertTrue(
+            formulario.is_valid(),
+            formulario.errors
+        )
+
+    def test_ubicacion_fuera_del_sector(self):
+        formulario = ReporteForm(data={
+            'titulo': 'Humo en el sector',
+            'descripcion': 'Hay humo cerca de viviendas.',
+            'sector': 'puchuncavi',
+            'direccion': '',
+            'latitud': '-32.78766',
+            'longitud': '-71.53228',
+        })
+
+        self.assertFalse(formulario.is_valid())
+
+        self.assertIn(
+            'fuera de la comuna indicada',
+            str(formulario.errors)
+        )
+
+    def test_coordenadas_fuera_de_chile(self):
+        formulario = ReporteForm(data={
+            'titulo': 'Reporte de prueba',
+            'descripcion': 'Problema ambiental de prueba.',
+            'sector': 'quintero',
+            'direccion': '',
+            'latitud': '40.7128',
+            'longitud': '-74.0060',
+        })
+
+        self.assertFalse(formulario.is_valid())
+
+    def test_sin_mapa_ni_direccion(self):
+        formulario = ReporteForm(data={
+            'titulo': 'Reporte sin punto',
+            'descripcion': 'Hay humo en el sector.',
+            'sector': 'quintero',
+            'direccion': '',
+            'latitud': '',
+            'longitud': '',
+        })
+
+        self.assertTrue(
+            formulario.is_valid(),
+            formulario.errors
+        )
+
+class PruebasComunas(TestCase):
+
+    def test_quintero_correcto(self):
+        self.assertTrue(
+            punto_permitido(
+                'quintero',
+                -71.53228,
+                -32.78766
+            )
+        )
+
+    def test_puchuncavi_correcto(self):
+        self.assertTrue(
+            punto_permitido(
+                'puchuncavi',
+                -71.42416,
+                -32.73111
+            )
+        )
+
+    def test_punto_de_quintero_no_es_puchuncavi(self):
+        self.assertFalse(
+            punto_permitido(
+                'puchuncavi',
+                -71.53228,
+                -32.78766
+            )
+        )
+
+    def test_formulario_rechaza_comuna_incorrecta(self):
+        formulario = ReporteForm(data={
+            'titulo': 'Humo cerca de viviendas',
+            'descripcion': 'Hay humo en el sector.',
+            'sector': 'puchuncavi',
+            'direccion': '',
+            'latitud': '-32.78766',
+            'longitud': '-71.53228'
+        })
+
+        self.assertFalse(formulario.is_valid())

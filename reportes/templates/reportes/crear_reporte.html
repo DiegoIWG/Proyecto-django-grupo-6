@@ -25,7 +25,7 @@
 
     <p>
         Publica un problema ambiental de
-        Quintero, Puchuncaví o Ventanas.
+        Quintero o Puchuncaví, incluyendo localidades como Ventanas
     </p>
 
     <form method="POST">
@@ -53,12 +53,6 @@
             Haz clic en el mapa para marcar un punto.
         </p>
 
-        <p>
-            <small>
-                Por ahora el punto es una prueba visual.
-                Aún no se guardará con el reporte.
-            </small>
-        </p>
 
         <button type="submit">
             Publicar reporte
@@ -71,16 +65,21 @@
         Volver al foro
     </a>
 
+    {{ limites_comunales|json_script:"limites-comunales" }}
+
     <script type="module">
         import * as maplibregl from
             'https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs';
 
-        // Coordenadas: [longitud, latitud]
         const sectores = {
             quintero: [-71.53228, -32.78766],
-            puchuncavi: [-71.42416, -32.73111],
-            ventanas: [-71.48835, -32.74177]
+            puchuncavi: [-71.42416, -32.73111]
         };
+
+        const limites = JSON.parse(
+            document.getElementById("limites-comunales").textContent
+        );
+
 
         const selector = document.getElementById("id_sector");
         const mensaje = document.getElementById("mensaje_mapa");
@@ -101,7 +100,85 @@
 
         let marcador = null;
 
+        function obtenerLimites(sector) {
+            const feature = limites.features.find(
+                f => f.properties.sector === sector
+            );
+
+            if (!feature) {
+                throw new Error("No se encontró la comuna: " + sector);
+            }
+
+            const bounds = new maplibregl.LngLatBounds();
+
+            function recorrer(coordenadas) {
+                if (typeof coordenadas[0] === "number") {
+                    bounds.extend(coordenadas);
+                } else {
+                    coordenadas.forEach(recorrer);
+                }
+            }
+
+            recorrer(feature.geometry.coordinates);
+
+            return bounds;
+        }
+
+        function mostrarComuna() {
+            const sector = selector.value;
+
+            if (!sectores[sector]) return;
+
+            const filtro = [
+                "==", ["get", "sector"], sector
+            ];
+
+            mapa.setFilter("comuna-relleno", filtro);
+            mapa.setFilter("comuna-borde", filtro);
+
+            const bounds = obtenerLimites(sector);
+
+            mapa.setMaxBounds(null);
+            mapa.fitBounds(bounds, {
+                padding: 30,
+                maxZoom: 13
+            });
+            mapa.setMaxBounds(bounds);
+        }
+
+        mapa.on("load", function() {
+
+            mapa.addSource("limites-comunales", {
+                type: "geojson",
+                data: limites
+            });
+
+            mapa.addLayer({
+                id: "comuna-relleno",
+                type: "fill",
+                source: "limites-comunales",
+                paint: {
+                    "fill-color": "#2563eb",
+                    "fill-opacity": 0.12
+                }
+            });
+
+            mapa.addLayer({
+                id: "comuna-borde",
+                type: "line",
+                source: "limites-comunales",
+                paint: {
+                    "line-color": "#1d4ed8",
+                    "line-width": 2
+                }
+            });
+
+            mostrarComuna();
+        });
+
         const direccion = document.getElementById("id_direccion");
+        direccion.readOnly = true;
+        direccion.placeholder = "Selecciona un punto en el mapa";
         const latitudInput = document.getElementById("id_latitud");
         const longitudInput = document.getElementById("id_longitud");
 
@@ -117,10 +194,7 @@
                 return;
             }
 
-            mapa.flyTo({
-            center: ubicacion,
-            zoom: 13
-            });
+            mostrarComuna();
 
             clearTimeout(temporizadorBusqueda);
 
@@ -131,25 +205,46 @@
             if (marcador) {
                 marcador.remove();
                 marcador = null;
-
-                latitudInput.value = "";
-                longitudInput.value = "";
-                direccion.value = "";
             }
+            
+            latitudInput.value = "";
+            longitudInput.value = "";
+            direccion.value = "";
 
             mensaje.textContent = "Selecciona un punto en el mapa.";
         });
 
+
+        
+
         // Colocar marcador al hacer clic
         mapa.on("click", function(evento) {
+
+            const resultados = mapa.queryRenderedFeatures(
+                evento.point,
+                { layers: ["comuna-relleno"] }
+            );
+
+            const dentro = resultados.some(
+                feature =>
+                    feature.properties.sector === selector.value
+            );
+
+            if (!dentro) {
+                mensaje.textContent =
+                    "Debes marcar un punto dentro de la comuna seleccionada.";
+                return;
+            }
 
             // Obtener coordenadas.
             const latitud = evento.lngLat.lat.toFixed(6);
             const longitud = evento.lngLat.lng.toFixed(6);
+                        
+            
 
             // Guardar coordenadas en el formulario.
             latitudInput.value = latitud;
-            longitudInput.value = longitud;
+            longitudInput.value = longitud; 
 
             // Colocar el marcador.
             if (marcador) {
@@ -167,12 +262,8 @@
                 controladorBusqueda.abort();
             }
 
-            // Mostrar temporalmente las coordenadas.
-            const provisional =
-                "Coordenadas: " + latitud + ", " + longitud;
-
-            direccion.value = provisional;
-            mensaje.textContent = "Buscando dirección...";
+            direccion.value = "";
+            mensaje.textContent = "Buscando dirección aproximada...";
 
             // Evitar consultas por cada clic muy rápido.
             temporizadorBusqueda = setTimeout(async function() {
@@ -198,20 +289,45 @@
 
                     const datos = await respuesta.json();
 
-                    if (datos.display_name) {
-                        // No sobrescribir si el usuario editó
-                        // manualmente la dirección.
-                        if (direccion.value === provisional) {
-                            direccion.value = datos.display_name;
-                        }
+                    
+                const datosDireccion = datos.address || {};
 
-                        mensaje.textContent =
-                            "Ubicación seleccionada correctamente.";
-                    } else {
-                        mensaje.textContent =
-                            "No se encontró una dirección exacta. " +
-                            "Puedes escribirla manualmente.";
-                    }
+                const calle = [
+                    datosDireccion.road ||
+                    datosDireccion.pedestrian ||
+                    "",
+                    datosDireccion.house_number || ""
+            ].filter(Boolean).join(" ");
+
+                const comuna = selector.value === "quintero"
+                    ? "Quintero"
+                    : "Puchuncaví";
+
+                const esVentanas = [
+                    datosDireccion.suburb,
+                    datosDireccion.neighbourhood,
+                    datosDireccion.village,
+                    datosDireccion.town
+                ].some(nombre => /ventanas/i.test(nombre || ""));
+
+                if (calle) {
+                    const partes = [
+                        calle,
+                        esVentanas ? "Ventanas" : "",
+                        comuna
+                    ].filter(Boolean);
+
+                    direccion.value = partes.join(", ").slice(0, 200);
+
+                    mensaje.textContent =
+                        "Dirección aproximada obtenida.";
+                } else {
+                    direccion.value = "";
+
+                    mensaje.textContent =
+                        "Punto válido, pero no se encontró una calle aproximada.";
+                }
+
 
                 } catch (error) {
                     if (error.name === "AbortError") {
@@ -221,8 +337,8 @@
                     console.error(error);
 
                     mensaje.textContent =
-                        "No se pudo obtener la dirección. " +
-                        "Puedes escribirla manualmente.";
+                    "El punto fue seleccionado, pero no se pudo " +
+                    "obtener una dirección aproximada.";
                 }
 
             }, 1200);
@@ -234,6 +350,7 @@
             mensaje.textContent =
                 "Hubo un problema cargando el mapa.";
         });
+        
     </script>
 
 </body>

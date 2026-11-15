@@ -11,6 +11,7 @@ from urllib.parse import urlencode
 from .models import Reporte, Apoyo, Apelacion, Comentario
 from .forms import ReporteForm, ApelacionForm, RegistroRutForm,ComentarioForm
 from .vigencia import fecha_limite
+from .geografia import cargar_limites
 
 def inicio(request):
     orden = request.GET.get('orden', 'recientes')
@@ -101,7 +102,8 @@ def crear_reporte(request):
         formulario = ReporteForm()
 
     contexto = {
-        'formulario': formulario
+        'formulario': formulario,
+        'limites_comunales': cargar_limites()
     }
 
     return render(request, 'reportes/crear_reporte.html', contexto)
