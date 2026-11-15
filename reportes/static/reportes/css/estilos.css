@@ -599,3 +599,179 @@ li { margin: 4px 0; }
   .detalle-prioridad { align-items: flex-start; }
   .detalle-panel { padding: 20px; }
 }
+
+/*======================================================
+  Versión 4 — Cuentas, Historial y Mis reportes
+  Añadido a estilos_v3.css sin reemplazar estilos previos.
+  ====================================================== */
+/* Pantallas de acceso: el formulario real sigue siendo Django */
+
+.pagina-cuenta {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.pagina-cuenta .barra-interior {
+  margin-bottom: 30px;
+}
+.cuenta-intro {
+  text-align: center;
+  margin: 0 auto 22px;
+}
+.cuenta-emblema {
+  display: inline-grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  margin-bottom: 12px;
+  border-radius: 18px;
+  background: #e1f5e8;
+  color: var(--primario);
+  font-size: 1.7rem;
+}
+.cuenta-intro h1 {
+  margin-bottom: 9px;
+  font-size: clamp(1.8rem, 4vw, 2.35rem);
+}
+.cuenta-intro p {
+  margin: 0 auto;
+  max-width: 470px;
+  color: var(--texto-suave);
+}
+.cuenta-tarjeta {
+  padding: clamp(22px, 4vw, 36px);
+  border: 1px solid var(--borde);
+  border-radius: 22px;
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+.cuenta-tarjeta form > p { margin: 0 0 18px; }
+.cuenta-tarjeta form > p:last-of-type { margin-bottom: 22px; }
+.cuenta-tarjeta input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="submit"]),
+.cuenta-tarjeta select {
+  display: block;
+  width: 100%;
+}
+.cuenta-tarjeta form > button[type="submit"],
+.cuenta-tarjeta form > input[type="submit"],
+.cuenta-tarjeta .boton-cuenta {
+  width: 100%;
+  min-height: 48px;
+}
+.cuenta-tarjeta ul.errorlist { margin: 8px 0 12px; }
+.cuenta-tarjeta .helptext,
+.cuenta-tarjeta .helptext ul {
+  font-size: .85rem;
+  color: var(--texto-suave);
+  line-height: 1.55;
+}
+.cuenta-tarjeta .helptext ul { margin: 6px 0 12px; padding-left: 20px; }
+.cuenta-pie {
+  margin: 22px 0 0;
+  padding-top: 17px;
+  text-align: center;
+  color: var(--texto-suave);
+  border-top: 1px solid var(--borde);
+  font-size: .94rem;
+}
+.cuenta-pie a { text-decoration: none; }
+.cuenta-pie a:hover { text-decoration: underline; }
+
+/* Historial y reportes propios */
+.pagina-listado {
+  max-width: 1010px;
+  margin: 0 auto;
+}
+.listado-hero {
+  padding: clamp(23px, 4vw, 38px);
+  margin-bottom: 22px;
+  border: 1px solid #bcdcca;
+  border-radius: 22px;
+  background: linear-gradient(125deg, #e4f5ec 0%, #f8fbf9 74%, #e8f4ee 100%);
+}
+.listado-hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.9rem, 4.2vw, 2.65rem);
+}
+.listado-hero p:not(.sobretitulo) {
+  margin: 0;
+  max-width: 740px;
+  color: #47665b;
+}
+.listado-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 20px 0 10px;
+}
+.listado-encabezado h2 { margin: 0; }
+.listado-encabezado p { margin: 0; color: var(--texto-suave); }
+.estado-reporte {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: .8rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+.estado-activo {
+  background: #e1f5e8;
+  color: #126240;
+}
+.estado-archivado {
+  background: #edf0f3;
+  color: #52626c;
+}
+.reportes-vacio {
+  padding: clamp(22px, 4vw, 36px);
+  border: 1px dashed #bad7c8;
+  border-radius: var(--radio);
+  background: #f8fbf9;
+  color: var(--texto-suave);
+  text-align: center;
+}
+.reportes-vacio h2, .reportes-vacio h3 { margin-top: 0; }
+.reportes-vacio p { margin: 9px auto 17px; max-width: 560px; }
+
+/* Bloques opcionales que también sirven para apelaciones y mensajes */
+.aviso-suave {
+  margin: 16px 0;
+  padding: 13px 16px;
+  border: 1px solid #cce4d5;
+  border-radius: 12px;
+  background: #eff8f2;
+  color: #345a45;
+}
+.aviso-error {
+  margin: 16px 0;
+  padding: 13px 16px;
+  border: 1px solid #f2c6ca;
+  border-radius: 12px;
+  background: #fff2f3;
+  color: #8d2e38;
+}
+
+@media (max-width: 700px) {
+  .cuenta-tarjeta { padding: 21px; }
+  .cuenta-intro { margin-bottom: 18px; }
+  .listado-hero { padding: 23px 21px; border-radius: 18px; }
+  .listado-encabezado { align-items: flex-start; }
+}
+
+.cuenta-volver {
+    margin-top: 24px;
+    text-align: center;
+}
+
+.cuenta-volver a {
+    color: #12694F;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.cuenta-volver a:hover {
+    text-decoration: underline;
+}

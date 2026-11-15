@@ -4,68 +4,108 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Historial de reportes</title>
 
     <link rel="stylesheet"
         href="{% static 'reportes/css/estilos.css' %}">
-
-    <title>Historial de reportes</title>
 </head>
+
 <body>
 
-    <h1>Historial de reportes</h1>
+    <main class="pagina-listado">
 
-    <p>
-        Aquí se conservan los reportes que
-        cumplieron sus 21 días de publicación.
-    </p>
-
-    <p>
-        Un reporte archivado no significa
-        que el problema haya sido solucionado.
-    </p>
-
-    <a href="{% url 'inicio' %}">
-        Volver al foro
-    </a>
-
-    <hr>
-
-    {% for reporte in reportes %}
-
-        <h3>
-            <a href="{% url 'detalle_reporte' reporte.id %}">
-                {{ reporte.titulo }}
+        <nav class="barra-interior">
+            <a href="{% url 'inicio' %}" class="marca">
+                🌿 Tu opinión SÍ importa
             </a>
-        </h3>
 
-        <p>
-            Sector: {{ reporte.get_sector_display }}
-        </p>
+            <a href="{% url 'inicio' %}"
+                class="enlace-volver">
+                ← Volver al foro
+            </a>
+        </nav>
 
-        <p>
-            Prioridad: {{ reporte.prioridad }}
-        </p>
+        <header class="listado-hero">
 
-        <p>
-            Apoyos históricos:
-            {{ reporte.apoyos.count }}
-        </p>
+            <p class="sobretitulo">
+                Historial ciudadano
+            </p>
 
-        <p>
-            Publicado:
-            {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}
-        </p>
+            <h1>Historial de reportes</h1>
 
-        <p><strong>Estado: Archivado</strong></p>
+            <p>
+                Consulta los reportes que completaron
+                su período de visibilidad.
+                Su archivado no significa que el
+                problema haya sido solucionado.
+            </p>
 
-        <hr>
+        </header>
 
-    {% empty %}
+        <section class="lista-reportes">
 
-        <p>No hay reportes archivados todavía.</p>
+            {% for reporte in reportes %}
 
-    {% endfor %}
+                <article class="reporte-card">
+
+                    <div class="reporte-meta">
+                        <span class="estado-reporte estado-archivado">
+                            Archivado
+                        </span>
+                    </div>
+
+                    <h3>
+                        <a href="{% url 'detalle_reporte' reporte.id %}">
+                            {{ reporte.titulo }}
+                        </a>
+                    </h3>
+
+                    <p>
+                        <strong>Comuna:</strong>
+                        {{ reporte.get_sector_display }}
+                    </p>
+
+                    <p>
+                        <strong>Prioridad:</strong>
+                        <span class="etiqueta prioridad-{{ reporte.prioridad|lower }}">
+                            {{ reporte.prioridad }}
+                        </span>
+                    </p>
+
+                    <p>
+                        <strong>Apoyos históricos:</strong>
+                        {{ reporte.apoyos.count }}
+                    </p>
+
+                    <p>
+                        <strong>Publicado:</strong>
+                        {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}
+                    </p>
+
+                    <div class="reporte-acciones">
+                        <a href="{% url 'detalle_reporte' reporte.id %}">
+                            Ver detalles
+                        </a>
+                    </div>
+
+                </article>
+
+            {% empty %}
+
+                <div class="detalle-panel">
+                    <p>
+                        No hay reportes archivados todavía.
+                    </p>
+                </div>
+
+            {% endfor %}
+
+        </section>
+
+    </main>
 
 </body>
 </html>

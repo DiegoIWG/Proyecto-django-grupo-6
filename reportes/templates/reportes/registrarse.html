@@ -4,43 +4,64 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Crear cuenta</title>
 
     <link rel="stylesheet"
         href="{% static 'reportes/css/estilos.css' %}">
-
-    
-    <title>Crear cuenta</title>
 </head>
+
 <body>
 
-    <h1>Crear cuenta</h1>
+    <main class="pagina-cuenta">
 
-    <p>
-        Regístrate para participar en
-        Tu opinión SÍ importa.
-    </p>
+        <div class="cuenta-intro">
 
-    <form method="POST">
-        {% csrf_token %}
+            <div class="cuenta-emblema">🌿</div>
 
-        {{ formulario.as_p }}
+            <h1>Crea tu cuenta</h1>
 
-        <button type="submit">
-            Crear cuenta
-        </button>
-    </form>
+            <p>
+                Regístrate para publicar reportes
+                y participar en tu comunidad.
+            </p>
 
-    <p>
-        ¿Ya tienes una cuenta?
-        <a href="{% url 'iniciar_sesion' %}">
-            Iniciar sesión
-        </a>
-    </p>
+        </div>
 
-    <a href="{% url 'inicio' %}">
-        Volver al foro
-    </a>
+        <section class="cuenta-tarjeta">
+
+            <form method="POST">
+                {% csrf_token %}
+
+                {{ formulario.as_p }}
+
+                <button type="submit">
+                    Crear cuenta
+                </button>
+            </form>
+
+            <div class="cuenta-pie">
+
+                <p>
+                    ¿Ya tienes una cuenta?
+                    <a href="{% url 'iniciar_sesion' %}">
+                        Iniciar sesión
+                    </a>
+                </p>
+
+                <p>
+                    <a href="{% url 'inicio' %}">
+                        ← Volver al foro
+                    </a>
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
 
 </body>
 </html>
