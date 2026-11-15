@@ -389,3 +389,213 @@ li { margin: 4px 0; }
   .hero-acciones .boton { width: 100%; }
   .cabecera-listado { align-items: flex-start; }
 }
+
+/* ======================================================
+   Versión 3 — Crear reporte + Detalle de reporte
+   No cambia IDs, campos, eventos ni controles de MapLibre.
+   ====================================================== */
+
+/* Composición interior de páginas */
+.pagina-reporte,
+.pagina-detalle {
+  max-width: 1010px;
+  margin: 0 auto;
+}
+.barra-interior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 22px;
+  flex-wrap: wrap;
+  margin: 0 0 22px;
+  padding: 12px 17px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 24px rgba(20, 62, 48, .04);
+}
+.barra-interior .marca { font-size: 1rem; }
+.barra-interior .enlace-volver {
+  text-decoration: none;
+  font-size: .92rem;
+}
+.barra-interior .enlace-volver:hover { text-decoration: underline; }
+
+.encabezado-pagina,
+.detalle-cabecera {
+  margin: 0 0 22px;
+  padding: clamp(23px, 4vw, 38px);
+  border: 1px solid #bcdcca;
+  border-radius: 22px;
+  background: linear-gradient(125deg, #e4f5ec 0%, #f8fbf9 74%, #e8f4ee 100%);
+}
+.encabezado-pagina h1,
+.detalle-cabecera h1 {
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.9rem, 4.2vw, 2.65rem);
+}
+.encabezado-pagina p:not(.sobretitulo),
+.detalle-cabecera p:not(.sobretitulo) {
+  max-width: 730px;
+  margin: 0;
+  color: #47665b;
+}
+
+/* Crear reporte: campos y panel para mapa */
+.pagina-reporte .formulario-reporte {
+  margin: 0;
+  padding: clamp(20px, 3.6vw, 38px);
+}
+.pagina-reporte .formulario-reporte > p {
+  margin: 0 0 20px;
+}
+.pagina-reporte .formulario-reporte > p label,
+.pagina-reporte .formulario-reporte label {
+  font-size: .94rem;
+}
+.pagina-reporte .formulario-reporte input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.pagina-reporte .formulario-reporte select,
+.pagina-reporte .formulario-reporte textarea {
+  width: 100%;
+}
+.pagina-reporte .formulario-reporte p:has(> input[type="hidden"]) { margin-bottom: 0; }
+.pagina-reporte .formulario-reporte .helptext {
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.mapa-panel {
+  margin-top: 24px;
+  padding: clamp(16px, 3vw, 26px);
+  border: 1px solid #cde4d7;
+  border-radius: 17px;
+  background: #f7fbf8;
+}
+.mapa-panel h2,
+.mapa-panel h3 { margin: 0 0 9px; }
+.mapa-panel p { color: #52695e; }
+.mapa-panel #mapa { margin: 18px 0 12px; }
+.mapa-panel #mensaje_mapa {
+  display: block;
+  margin: 14px 0 0;
+  color: #315e49;
+}
+.nota-ubicacion {
+  color: #64776c;
+  font-size: .86rem;
+  line-height: 1.55;
+}
+.acciones-formulario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.acciones-formulario .boton-publicar { min-width: 190px; }
+
+/* Detalle: jerarquía de información */
+.detalle-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 12px 0 0;
+  color: #536e61;
+  font-size: .91rem;
+}
+.detalle-panel {
+  margin: 18px 0;
+  padding: clamp(19px, 3vw, 30px);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+  overflow-wrap: anywhere;
+}
+.detalle-panel h2,
+.detalle-panel h3 { margin: 0 0 14px; }
+.detalle-panel > p:first-of-type { margin-top: 0; }
+.detalle-panel > p:last-child { margin-bottom: 0; }
+.detalle-texto { line-height: 1.85; white-space: normal; overflow-wrap: anywhere; }
+.detalle-prioridad {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px 14px;
+  padding: 13px 16px;
+  margin: 12px 0;
+  border-radius: 12px;
+  background: #f1f8f4;
+}
+.detalle-prioridad p { margin: 0; }
+.detalle-motivos {
+  margin: 10px 0 16px;
+  padding: 12px 18px 12px 36px;
+  border-radius: 12px;
+  background: #f7faf8;
+  color: #355749;
+}
+.detalle-motivos li { margin: 6px 0; }
+.detalle-mapa {
+  margin-top: 14px;
+}
+.detalle-mapa #mapa_reporte { margin: 14px 0; }
+
+/* Apoyos y comentarios: respeta los formularios de Django existentes */
+.panel-apoyos {
+  border-color: #c0decb;
+  background: linear-gradient(165deg, #fff, #f8fcf9);
+}
+.panel-apoyos form,
+.panel-comentarios form {
+  margin: 12px 0;
+}
+.panel-apoyos form button[type="submit"] { margin: 2px 0; }
+.panel-apoyos small,
+.panel-comentarios small { color: var(--texto-suave); }
+.panel-comentarios textarea { width: 100%; }
+.panel-comentarios .comentario,
+.panel-comentarios .comentario-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borde);
+}
+.panel-comentarios .comentario:last-child,
+.panel-comentarios .comentario-item:last-child { border-bottom: none; }
+
+/* Compatibilidad visual y controles de MapLibre */
+#mapa,
+#mapa_reporte {
+  max-width: 100%;
+  isolation: isolate;
+  background: #e5eee8;
+}
+.maplibregl-ctrl button {
+  min-height: 0;
+  border-radius: 0;
+  background: #fff;
+  color: #333;
+  padding: 0;
+  box-shadow: none;
+  transform: none;
+}
+.maplibregl-ctrl button:hover {
+  background: #f3f6f5;
+  color: #333;
+  box-shadow: none;
+  transform: none;
+}
+.maplibregl-ctrl-group { border-radius: 8px; overflow: hidden; }
+
+@media (max-width: 700px) {
+  .barra-interior { align-items: flex-start; }
+  .barra-interior .marca { width: 100%; }
+  .encabezado-pagina,
+  .detalle-cabecera { padding: 23px 21px; border-radius: 18px; }
+  .pagina-reporte .formulario-reporte { padding: 20px; }
+  .mapa-panel { padding: 15px; }
+  .acciones-formulario { display: grid; }
+  .acciones-formulario .boton-publicar { width: 100%; }
+  .detalle-prioridad { align-items: flex-start; }
+  .detalle-panel { padding: 20px; }
+}
