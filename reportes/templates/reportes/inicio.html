@@ -11,66 +11,101 @@
 
     <title>Tu opinión SÍ importa</title>
 
-    <p>
-        <a href="{% url 'historial' %}">
-            Ver historial de reportes antiguos
-        </a>
-    </p>
-
-    {% if user.is_authenticated %}
-
-        <p>
-            Sesión iniciada como:
-            <strong>
-                {{ user.first_name|default:"Ciudadano" }}
-            </strong>
-        </p>
-
-        <p>
-            <a href="{% url 'mis_reportes' %}">
-                Mis reportes
-            </a>
-        </p>
-
-        <form method="POST"
-            action="{% url 'cerrar_sesion' %}">
-
-            {% csrf_token %}
-
-            <button type="submit">
-                Cerrar sesión
-            </button>
-        </form>
-
-    {% else %}
-
-        <p>
-            <a href="{% url 'iniciar_sesion' %}">
-                Iniciar sesión
-            </a>
-        </p>
-
-        <p>
-            <a href="{% url 'registrarse' %}">
-                Crear cuenta
-            </a>
-        </p>
-
-    {% endif %}
-
 </head>
 <body>
 
-    <h1>Tu opinión SÍ importa</h1>
+<header class="barra-superior">
 
-    <p>
-        Foro ciudadano de problemas ambientales
-        de Quintero, Puchuncaví y Ventanas.
-    </p>
+    <a href="{% url 'inicio' %}" class="marca">
+        <span class="marca-icono">🌿</span>
+        <span>Tu opinión SÍ importa</span>
+    </a>
+
+    <nav class="navegacion">
+
+        <a href="{% url 'inicio' %}"
+            class="enlace-nav">
+            Foro
+        </a>
+
+        <a href="{% url 'historial' %}"
+            class="enlace-nav">
+            Historial
+        </a>
+
+        {% if user.is_authenticated %}
+
+            <a href="{% url 'mis_reportes' %}"
+                class="enlace-nav">
+                Mis reportes
+            </a>
+
+            <span class="usuario-actual">
+                Hola,
+                {{ user.first_name|default:"Ciudadano" }}
+            </span>
+
+            <form method="POST"
+                action="{% url 'cerrar_sesion' %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="boton-salir">
+                    Cerrar sesión
+                </button>
+            </form>
+
+        {% else %}
+
+            <a href="{% url 'iniciar_sesion' %}"
+                class="enlace-nav">
+                Iniciar sesión
+            </a>
+
+            <a href="{% url 'registrarse' %}"
+                class="boton">
+                Crear cuenta
+            </a>
+
+        {% endif %}
+
+    </nav>
+
+</header>
+
+    <section class="hero">
+
+        <p class="sobretitulo">
+            Participación ciudadana
+        </p>
+
+        <h1>Tu comunidad tiene voz.</h1>
+
+        <p>
+            Reporta problemas ambientales en
+            Quintero y Puchuncaví, conoce las
+            preocupaciones de tus vecinos y
+            apoya sus reportes.
+        </p>
+
+        <div class="hero-acciones">
+
+            <a href="{% url 'crear_reporte' %}"
+                class="boton">
+                + Crear reporte
+            </a>
+
+            <a href="#reportes"
+                class="enlace-discreto">
+                Explorar reportes
+            </a>
+
+        </div>
+
+    </section>
 
     <hr>
 
-    <h2>Reportes ambientales</h2>
+    <h2 id="reportes">Reportes ambientales</h2>
     
     <h3>Filtrar publicaciones</h3>
 
