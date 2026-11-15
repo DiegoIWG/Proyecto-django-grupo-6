@@ -1,7 +1,14 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet"
+        href="{% static 'reportes/css/estilos.css' %}">
+
     <title>Tu opinión SÍ importa</title>
 
     <p>
@@ -67,7 +74,7 @@
     
     <h3>Filtrar publicaciones</h3>
 
-    <form method="GET">
+    <form method="GET" class='filtros'>
 
         <label for="sector">Sector:</label>
 
@@ -123,13 +130,15 @@
 
     <hr>
 
-    <a href="{% url 'crear_reporte' %}">
-    Crear nuevo reporte
+    <a href="{% url 'crear_reporte' %}"
+        class="boton">
+        + Crear nuevo reporte
     </a>
 
     <hr>
 
     {% for reporte in reportes %}
+        <article class="reporte-card">
 
         <h3>
             <a href="{% url 'detalle_reporte' reporte.id %}">
@@ -139,7 +148,9 @@
         
         <p>
             <strong>Prioridad:</strong>
-            {{ reporte.prioridad }}
+            <span class="etiqueta prioridad-{{ reporte.prioridad|lower }}">
+                {{ reporte.prioridad }}
+            </span>
             ({{ reporte.puntaje }} puntos)
         </p>
 
@@ -167,7 +178,7 @@
         </p>
 
         <hr>
-
+        </article>
     {% empty %}
 
         <p>Todavía no existen reportes publicados.</p>
