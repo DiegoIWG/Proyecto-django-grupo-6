@@ -1340,6 +1340,7 @@ class PruebasUbicacionReporte(TestCase):
             formulario.errors
         )
 
+
 class PruebasComunas(TestCase):
 
     def test_quintero_correcto(self):
@@ -1380,3 +1381,83 @@ class PruebasComunas(TestCase):
         })
 
         self.assertFalse(formulario.is_valid())
+
+
+class PruebasClasificacionAmpliada(SimpleTestCase):
+    def comprobar(self, titulo, descripcion, puntaje, prioridad, motivo=None):
+        resultado = clasificar_reporte(titulo, descripcion)
+        self.assertEqual(resultado["puntaje"], puntaje, resultado)
+        self.assertEqual(resultado["prioridad"], prioridad, resultado)
+        if motivo:
+            self.assertIn(motivo, resultado["motivos"])
+
+    def test_derrames_hidrocarburos(self):
+        ejemplos = [
+            "Hay un derrame de petróleo en el borde costero.",
+            "Detectamos derrame de diésel cerca de un estanque.",
+            "Hay un derrame de combustible en la playa.",
+            "Se observa una mancha de petróleo en el mar.",
+        ]
+        for texto in ejemplos:
+            with self.subTest(texto=texto):
+                self.comprobar("Incidente costero", texto, 5, "Alta", "Derrame de hidrocarburos")
+
+    def test_derrame_quimico(self):
+        self.comprobar("Accidente", "Se reporta un derrame de ácido.", 5, "Alta", "Derrame quimico")
+
+    def test_fuga_gas(self):
+        self.comprobar("Fuga", "Hay una fuga de cloro en la instalación.", 5, "Alta", "Fuga de gas")
+
+    def test_intoxicacion(self):
+        self.comprobar("Emergencia", "Hay personas intoxicadas por gases.", 5, "Alta", "Intoxicacion")
+
+    def test_emision_de_benceno(self):
+        self.comprobar("Emisiones", "Hay emisiones de benceno en el sector.", 4, "Alta", "Emision de contaminantes peligrosos")
+
+    def test_aves_empetroladas(self):
+        self.comprobar("Fauna", "Se encontraron aves empetroladas.", 4, "Alta", "Mortandad importante de fauna")
+
+    def test_aguas_servidas(self):
+        self.comprobar("Descarga", "Se observa descarga de aguas servidas al mar.", 3, "Media", "Aguas servidas")
+
+    def test_humedal(self):
+        self.comprobar("Daño costero", "Hay relleno de humedal.", 3, "Media", "Destruccion de ecosistemas")
+
+    def test_microbasural(self):
+        self.comprobar("Basura", "Se formó un microbasural.", 1, "Baja", "Residuos")
+
+    def test_polvo_industrial(self):
+        self.comprobar("Polvo", "Hay polvo industrial en el aire.", 2, "Media", "Polvo y material particulado")
+
+    def test_recurrencia_y_lugar_sensible(self):
+        self.comprobar("Humo", "Hay humo todos los días cerca de un colegio.", 4, "Alta", "Problema recurrente")
+
+    def test_olor_a_combustible_no_equivale_a_derrame_confirmado(self):
+        self.comprobar("Olor en la costa", "Hay olor a combustible.", 2, "Media", "Olor a combustible")
+
+    def test_duda_derrame(self):
+        self.comprobar("Riesgo de derrame de petróleo", "Existe posible derrame de petróleo.", 2, "Media")
+
+    def test_duda_con_contexto_no_supera_tres(self):
+        self.comprobar("Posible fuga de gas", "Existe posible fuga de gas cerca de un colegio.", 3, "Media")
+
+    def test_negacion_no_inventa_emergencia(self):
+        self.comprobar("Reporte", "No hay derrame de petróleo, pero hay humo.", 2, "Media", "Humo")
+
+    def test_simulacro(self):
+        self.comprobar("Ejercicio", "Hubo un simulacro de incendio.", 0, "Baja")
+
+    def test_alarma_falsa(self):
+        self.comprobar("Aviso", "Fue una falsa alarma de fuga de gas.", 0, "Baja")
+
+    def test_muchos_problemas_no_se_suman(self):
+        self.comprobar("Problemas", "Hay humo y basura acumulada.", 2, "Media")
+
+    def test_referencia_sin_incidente(self):
+        self.comprobar("Reunión informativa", "Se discutió la industria petrolera.", 0, "Baja")
+
+    def test_resultado_compatible_con_modelo(self):
+        resultado = clasificar_reporte("Humo", "Humo en la zona")
+        self.assertEqual(set(resultado), {"puntaje", "prioridad", "motivos"})
+        self.assertIsInstance(resultado["motivos"], list)
+        self.assertTrue(0 <= resultado["puntaje"] <= 5)

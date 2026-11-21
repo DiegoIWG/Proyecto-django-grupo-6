@@ -75,6 +75,41 @@ Panel de administración: <http://127.0.0.1:8000/admin/>.
 4. Abrir el detalle de un reporte para ver su ubicación, apoyar la publicación o comentar (las dos últimas acciones requieren sesión iniciada y un reporte activo).
 5. Consultar reportes antiguos en el historial. Cuando corresponde, se puede pedir su reactivación para revisión administrativa.
 
+
+## Clasificación ambiental
+
+La aplicación analiza automáticamente el título y la
+descripción de cada reporte mediante reglas de Python.
+
+El sistema reconoce 27 categorías de problemas
+ambientales, incluyendo:
+
+- Derrames de petróleo y combustibles.
+- Fugas de gases y sustancias químicas.
+- Incendios y explosiones.
+- Contaminación del aire, agua y suelo.
+- Residuos peligrosos y microbasurales.
+- Daños a la fauna, flora y ecosistemas.
+- Ruidos, olores y emisiones industriales.
+
+### Cálculo de prioridad
+
+Los reportes reciben un puntaje de 0 a 5:
+
+- Baja: 0–1 puntos.
+- Media: 2–3 puntos.
+- Alta: 4–5 puntos.
+
+El sistema también considera factores como
+la recurrencia, los lugares sensibles y
+la cantidad de personas afectadas.
+
+La clasificación es preliminar y no constituye
+una evaluación oficial del riesgo ambiental.
+
+Los apoyos ciudadanos no modifican la prioridad.
+
+
 ## Pruebas
 
 Desde la carpeta de `manage.py`, ejecutar:
